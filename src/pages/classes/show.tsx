@@ -50,7 +50,7 @@ const Show = () => {
 
             <ShowViewHeader resource="classes" title="Class Details"/>
             <div className="banner">
-                {bannerUrl ? (
+                {bannerCldPubId ? (
                     <AdvancedImage alt="Class banner" cldImg={bannerPhoto(bannerCldPubId ?? '', name)} />
                 ) : <div className="placeholder"/>}
 
@@ -65,7 +65,7 @@ const Show = () => {
                     </div>
                     <div>
                         <Badge variant="outline">{capacity} spots</Badge>
-                        <Badge variant={status == 'active' ? 'default' : 'secondary'} data-status={status}>{status.toUpperCase()}</Badge>
+                        <Badge variant={status === 'active' ? 'default' : 'secondary'} data-status={status}>{status.toUpperCase()}</Badge>
                     </div>
                 </div>
 
@@ -77,7 +77,7 @@ const Show = () => {
 
                             <div>
                                 <p>{teacherName}</p>
-                                <p>{teacher?.email}</p>
+                                <p>{teacher?.email ?? 'No email available'}</p>
                             </div>
                         </div>
                     </div>
