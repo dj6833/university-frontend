@@ -13,6 +13,7 @@ import {ColumnDef} from "@tanstack/react-table";
 import {Badge} from "@/components/ui/badge.tsx";
 import {ClassDetails, Subject, User} from "@/types";
 import {useList} from "@refinedev/core";
+import {ShowButton} from "@/components/refine-ui/buttons/show.tsx";
 //import {DEPARTMENT_OPTIONS} from "@/constants";
 
 const ClassesList = () => {
@@ -117,6 +118,15 @@ const ClassesList = () => {
                 size: 100,
                 header: () => <p className="column-title">Teacher</p>,
                 cell: ({ getValue }) => <span className="text-foreground">{getValue<string>()}</span>,
+            },
+            {
+                id: "details",
+                //accessorKey: "capacity",
+                size: 140,
+                header: () => <p className="column-title">Details</p>,
+                cell: ({ row }) => <ShowButton
+                    resource="classes" recordItemId={row.original.id} variant="outline" size="sm">View
+                </ShowButton>
             }
         ],
         []
