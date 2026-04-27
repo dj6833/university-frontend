@@ -116,7 +116,7 @@ const ClassesList = () => {
                 id: "capacity",
                 accessorKey: "capacity",
                 size: 100,
-                header: () => <p className="column-title">Teacher</p>,
+                header: () => <p className="column-title">Capacity</p>,
                 cell: ({ getValue }) => <span className="text-foreground">{getValue<string>()}</span>,
             },
             {
