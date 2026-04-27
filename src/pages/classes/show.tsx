@@ -90,7 +90,6 @@ const Show = () => {
                         </div>
                     </div>
 
-                    <Separator  />
 
                     <div className="subject">
                         <p>Subject</p>
@@ -101,8 +100,6 @@ const Show = () => {
                         </div>
                     </div>
 
-                    <Separator />
-
                     <div className="join">
                         <h2>Join Class</h2>
                         <ol>
@@ -110,8 +107,8 @@ const Show = () => {
                             <li>Click on "Join Class" button</li>
                             <li>Paste the code and click "join"</li>
                         </ol>
+                        <Button size="lg" className="w-full">Join Class</Button>
                     </div>
-                    <Button size="lg" className="w-full">Join Class</Button>
                 </div>
             </Card>
         </ShowView>
