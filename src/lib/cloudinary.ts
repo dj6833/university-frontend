@@ -1,44 +1,46 @@
-import {Cloudinary} from '@cloudinary/url-gen'
-import {CLOUDINARY_CLOUD_NAME} from "@/constants";
+import { Cloudinary } from "@cloudinary/url-gen";
 import {fill} from "@cloudinary/url-gen/actions/resize";
-import {dpr, format, quality} from "@cloudinary/url-gen/actions/delivery";
+import { compass } from "@cloudinary/url-gen/qualifiers/gravity";
+
+import { TextStyle } from "@cloudinary/url-gen/qualifiers/textStyle";
+import { format, quality, dpr } from "@cloudinary/url-gen/actions/delivery";
 import {source} from "@cloudinary/url-gen/actions/overlay";
 import {text} from "@cloudinary/url-gen/qualifiers/source";
-import {TextStyle} from '@cloudinary/url-gen/qualifiers/textStyle'
 import {Position} from "@cloudinary/url-gen/qualifiers/position";
-import {compass} from "@cloudinary/url-gen/qualifiers/gravity";
 
-const cld = new Cloudinary({cloud: {cloudName: CLOUDINARY_CLOUD_NAME}});
+import { CLOUDINARY_CLOUD_NAME } from "@/constants";
+
+// Cloudinary instance.
+const cld = new Cloudinary({
+  cloud: {
+    cloudName: CLOUDINARY_CLOUD_NAME,
+  },
+});
 
 export const bannerPhoto = (imageCldPubId: string, name: string) => {
-    if(!imageCldPubId || !name) {
-        throw new Error('imageCldPubId and name must be provided for bannerPhoto');
-    }
+  return (
+    cld
+      .image(imageCldPubId)
 
-    return cld
-        .image(imageCldPubId)
-        //.resize(fill().width(200).height(300)) //comment-out as we want a higher-res image by not providing h&w
-        .resize(fill())
-        .delivery(format('auto'))
-        .delivery(quality('auto'))
-        .delivery(dpr('auto'))
+      .resize(
+        fill().width(1200).height(297) // Aspect ratio 5:1
+      )
+      // Optimize for web
+      .delivery(format("auto"))
+      .delivery(quality("auto"))
+      .delivery(dpr("auto"))
+      // Text overlay with name
         .overlay(
             source(
-                //text(name, new TextStyle('roboto', 42).fontWeight('bold')) //too small
-                text(name, new TextStyle('roboto', 100).fontWeight('bold'))
-                    .textColor(
-                        'white'
-                    )
+          text(name, new TextStyle("roboto", 42).fontWeight("bold")).textColor(
+            "white"
             )
-            .position(
+        ).position(
                 new Position()
-                    //below settings present text in bottom-left, not visible in our form
-                    // .gravity(compass('south_west'))
-                    // .offsetY(0.2)
-                    // .offsetX(0.02)
-                    //try these instead:
-                    .gravity(compass('west'))
+            .gravity(compass("south_west"))
+            .offsetY(0.2)
                     .offsetX(0.02)
             )
         )
-}
+  );
+};
