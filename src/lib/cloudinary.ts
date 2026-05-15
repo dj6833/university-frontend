@@ -35,6 +35,7 @@ export const bannerPhoto = (imageCldPubId: string, name: string) => {
                 source(
                     text(name, new TextStyle("roboto", 54).fontWeight("bold"))
                         .textColor(
+                            //could these colours be referenced by their css classes elsewhere in the project?
                             //"#3d3929"
                             "#c96442"
                         )
