@@ -41,6 +41,39 @@ import FacultyShow from "./pages/faculty/show";
 import EnrollmentsCreate from "./pages/enrollments/create";
 import EnrollmentsJoin from "./pages/enrollments/join";
 import EnrollmentConfirm from "./pages/enrollments/confirm";
+import { toast } from "sonner"; // ◄ Add this line to access the notification engine directly
+
+/*
+Globally force all browser fetch requests to include cookies, ensuring our session cookie is passed
+And check responses to handle server rejections
+*/
+
+const originalFetch = window.fetch;
+window.fetch = async (input, init) => {
+  // 1. Force the Better Auth credentials on the outbound request
+  const response = await originalFetch(input, {
+    ...init,
+    credentials: "include",
+  });
+
+  // 2. Automate the session timeout logout cleanly
+  if (response.status === 401) {
+    localStorage.removeItem("user");
+    window.location.href = "/login";
+    return response;
+  }
+
+  // 3. If it's a 403, append a custom property flag directly onto the response object
+  if (response.status === 403) {
+    console.log("its-403");
+    (response as any).isSecurityBlock = true;
+  }
+
+  return response;
+};
+
+
+
 
 function App() {
   return (
