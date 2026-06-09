@@ -44,7 +44,6 @@ import EnrollmentConfirm from "./pages/enrollments/confirm";
 
 /*
 Globally force all browser fetch requests to include cookies, ensuring our session cookie is passed
-And check responses to handle server rejections
 */
 
 const originalFetch = window.fetch;
