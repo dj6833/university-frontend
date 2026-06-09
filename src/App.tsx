@@ -5,9 +5,9 @@ import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 import routerProvider, {
   DocumentTitleHandler,
   NavigateToResource,
-  UnsavedChangesNotifier,
+  UnsavedChangesNotifier
 } from "@refinedev/react-router";
-import {BrowserRouter, Outlet, Route, Routes} from "react-router";
+import {BrowserRouter, Navigate, Outlet, Route, Routes} from "react-router";
 import "./App.css";
 import { Toaster } from "./components/refine-ui/notification/toaster";
 import { useNotificationProvider } from "./components/refine-ui/notification/use-notification-provider";
@@ -41,7 +41,6 @@ import FacultyShow from "./pages/faculty/show";
 import EnrollmentsCreate from "./pages/enrollments/create";
 import EnrollmentsJoin from "./pages/enrollments/join";
 import EnrollmentConfirm from "./pages/enrollments/confirm";
-import { toast } from "sonner"; // ◄ Add this line to access the notification engine directly
 
 /*
 Globally force all browser fetch requests to include cookies, ensuring our session cookie is passed
@@ -50,30 +49,12 @@ And check responses to handle server rejections
 
 const originalFetch = window.fetch;
 window.fetch = async (input, init) => {
-  // 1. Force the Better Auth credentials on the outbound request
-  const response = await originalFetch(input, {
+  // Force the Better Auth credentials on ALL outbound requests
+  return originalFetch(input, {
     ...init,
     credentials: "include",
   });
-
-  // 2. Automate the session timeout logout cleanly
-  if (response.status === 401) {
-    localStorage.removeItem("user");
-    window.location.href = "/login";
-    return response;
-  }
-
-  // 3. If it's a 403, append a custom property flag directly onto the response object
-  if (response.status === 403) {
-    console.log("its-403");
-    (response as any).isSecurityBlock = true;
-  }
-
-  return response;
 };
-
-
-
 
 function App() {
   return (
@@ -90,6 +71,24 @@ function App() {
                 syncWithLocation: true,
                 warnWhenUnsavedChanges: true,
                 projectId: "mG476x-8Tj0nI-6mS6lr",
+                reactQuery: {
+                  clientConfig: {
+                    defaultOptions: {
+                      queries: {
+                        retry: (failureCount, error: any) => {
+                          // Because we throw HttpError, statusCode is guaranteed to be a number
+                          const status = error?.statusCode;
+
+                          if (status === 401 || status === 403) {
+                            return false; // Fail instantly for authentication and permission blocks
+                          }
+
+                          return failureCount < 3; // Maintain Refine default of 3x request retries for other types of request issues
+                        },
+                      },
+                    },
+                  },
+                },
               }}
               resources={[
                   {
@@ -151,31 +150,43 @@ function App() {
               ]}
             >
               <Routes>
+                {/* PUBLIC ROUTES (Login / Register) */}
                 <Route
-                  element={
-                    <Authenticated key="public-routes" fallback={<Outlet />}>
-                      <NavigateToResource fallbackTo="/" />
-                    </Authenticated>
-                  }
+                    element={
+                      <Authenticated
+                          key="public-routes"
+                          fallback={<Outlet />} // If NOT logged in, let them access login/register
+                      >
+                        {/* If ALREADY logged in, automatically push them to the default logged-in resource */}
+                        <NavigateToResource />
+                      </Authenticated>
+                    }
                 >
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                 </Route>
 
+                {/* 2. PROTECTED PRIVATE ROUTES */}
                 <Route
-                  element={
-                    <Authenticated key="private-routes" fallback={<Login />}>
-                    <Layout>
-                        <Outlet />
-                    </Layout>
-                    </Authenticated>
-                  }
+                    element={
+                      <Authenticated
+                          key="private-routes"
+                          // Todo: consider CatchAllNavigate here to call /login while preserving the return-to details in the URL
+                          // (but needs work to handle session timeout vs intentional user-logged-off behaviour)
+                          // fallback={<CatchAllNavigate to="/login" />}
+                          fallback={<Navigate to="/login" />}
+                      >
+                        <Layout>
+                          <Outlet />
+                        </Layout>
+                      </Authenticated>
+                    }
                 >
-                      <Route path="/" element={<Dashboard />} />
+                  <Route path="/" element={<Dashboard />} />
 
-                      <Route path="subjects">
-                          <Route index element={<SubjectsList />} />
-                          <Route path="create" element={<SubjectsCreate />} />
+                  <Route path="subjects">
+                    <Route index element={<SubjectsList />} />
+                    <Route path="create" element={<SubjectsCreate />} />
                     <Route path="show/:id" element={<SubjectsShow />} />
                   </Route>
 
@@ -194,14 +205,14 @@ function App() {
                     <Route path="create" element={<EnrollmentsCreate />} />
                     <Route path="join" element={<EnrollmentsJoin />} />
                     <Route path="confirm" element={<EnrollmentConfirm />} />
-                      </Route>
-
-                      <Route path="classes">
-                          <Route index element={<ClassesList />} />
-                          <Route path="create" element={<ClassesCreate />} />
-                          <Route path="show/:id" element={<ClassesShow />} />
-                      </Route>
                   </Route>
+
+                  <Route path="classes">
+                    <Route index element={<ClassesList />} />
+                    <Route path="create" element={<ClassesCreate />} />
+                    <Route path="show/:id" element={<ClassesShow />} />
+                  </Route>
+                </Route>
               </Routes>
 
               <Toaster />

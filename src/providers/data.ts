@@ -2,9 +2,29 @@ import {createDataProvider, CreateDataProviderOptions} from "@refinedev/rest";
 
 import { CreateResponse, GetOneResponse, ListResponse } from "@/types";
 import {BACKEND_BASE_URL} from "@/constants";
+import { HttpError } from "@refinedev/core";
 
 if (!BACKEND_BASE_URL)
   throw new Error("BACKEND_BASE_URL is not configured. Please set VITE_BACKEND_BASE_URL in your .env file");
+
+// Reusable helper to intercept errors before any parsing happens
+const checkResponseError = async (response: Response): Promise<void> => {
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({})) as any;
+
+    let defaultMessage = "An unexpected error occurred.";
+    if (response.status === 401) defaultMessage = "Unauthorised: No active user session found, please login";
+    if (response.status === 403) defaultMessage = "Access Denied: This resource is not available for your user profile.";
+
+    const httpError: HttpError = {
+      message: body?.message || body?.error || defaultMessage,
+      statusCode: response.status,
+      errors: body?.errors || {}, // Keeps form field validations working automatically
+    };
+
+    throw httpError;
+  }
+};
 
 const options: CreateDataProviderOptions = {
   getList: {
@@ -54,23 +74,15 @@ const options: CreateDataProviderOptions = {
       return params;
     },
 
-    mapResponse: async (response) => {
-      // Catch permission errors right here before Refine reads the stream
-      if (response.status === 403) {
-        const body = await response.json().catch(() => ({})) as any; //as any required here so body.message passes TS checks on next line
-        const msg = body?.message || "Access Denied: Action not allowed.";
-        //const msg = "Access Denied: Action not allowed.";
-        throw new Error(msg); // ◄ This tells Refine's UI hook to show an error toast!
-      }
-
+    mapResponse: async (response): Promise<any> => {
+      await checkResponseError(response);
       const payload: ListResponse = await response.json();
       return payload.data ?? [];
     },
 
     getTotalCount: async (response) => {
       // If a 403 occurred, the stream is broken, return 0 to prevent crashes (todo, should this be != 200 ?)
-      if (response.status === 403) return 0;
-
+      if (response.status === 401 || response.status === 403) return 0;
       const payload: ListResponse = await response.json();
       return payload.pagination?.total ?? payload.data?.length ?? 0;
     },
@@ -82,6 +94,7 @@ const options: CreateDataProviderOptions = {
     buildBodyParams: async ({ variables }) => variables,
 
     mapResponse: async (response) => {
+      await checkResponseError(response);
       const json: CreateResponse = await response.json();
       return json.data ?? {};
     },
@@ -91,6 +104,7 @@ const options: CreateDataProviderOptions = {
     getEndpoint: ({ resource, id }) => `${resource}/${id}`,
 
     mapResponse: async (response) => {
+      await checkResponseError(response);
       const json: GetOneResponse = await response.json();
       return json.data ?? {};
     },
