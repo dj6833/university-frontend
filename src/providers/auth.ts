@@ -102,36 +102,57 @@ export const authProvider: AuthProvider = {
 
     localStorage.removeItem("user");
 
+    // Hard-force a browser reload to the login page.
+    // This physically destroys the React memory heap and flushes out TanStack Query completely, ensuring no cached data leak possible for subsequent logins
+    window.location.href = "/login";
+
+    // Return success, but omit the 'redirectTo' property so Refine's router provider doesn't try to perform a duplicate SPA transition.
     return {
       success: true,
-      redirectTo: "/login",
     };
   },
-  onError: async (error) => {
-    if (error.response?.status === 401) {
+  onError: async (error: any) => {
+    // Read the clean .statusCode property thrown by your data provider helper
+    const status = error?.statusCode;
+
+    if (status === 401) {
+      localStorage.removeItem("user");
+      // Modern Refine requires returning an OnErrorResponse object
+      // This triggers a clean Single Page Application redirect and logs them out
       return {
         logout: true,
+        redirectTo: "/login",
       };
     }
-
-    return { error };
+    // For 403 Forbidden or other application errors, return an empty object.
+    // This tells Refine NOT to log them out, allowing the toast notification to do its job.
+    return {};
   },
   check: async () => {
-    const user = localStorage.getItem("user");
+    const userString = localStorage.getItem("user");
 
-    if (user) {
-      return {
-        authenticated: true,
-      };
+    if (userString) {
+      try {
+        const user = JSON.parse(userString);
+        return {
+          authenticated: true,
+          // Optional: Exposing the user profile lets you access things
+          // like user.role across your UI
+          data: user,
+        };
+      } catch (e) {
+        // If the localStorage string is corrupted, treat it as unauthenticated
+        localStorage.removeItem("user");
+      }
     }
-
+    // If no user exists, return authenticated: false.
+    // Refine's routing system handles the redirect to /login automatically.
     return {
       authenticated: false,
-      logout: true,
       redirectTo: "/login",
       error: {
         name: "Unauthorized",
-        message: "Check failed",
+        message: "Please log in to access this page.",
       },
     };
   },
