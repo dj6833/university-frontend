@@ -89,9 +89,9 @@ const EnrollmentsCreate = () => {
     <CreateView className="class-view">
       <Breadcrumb />
 
-      <h1 className="page-title">Enroll in a Class</h1>
+      <h1 className="page-title">Enrol in a Class</h1>
       <div className="intro-row">
-        <p>Select a class to enroll as the current user.</p>
+        <p>Select a class to enrol as the current user.</p>
       </div>
 
       <Separator />
@@ -100,7 +100,7 @@ const EnrollmentsCreate = () => {
         <Card className="class-form-card">
           <CardHeader className="relative z-10">
             <CardTitle className="text-2xl pb-0 font-bold text-gradient-orange">
-              Enrollment Form
+              Enrolment Form
             </CardTitle>
           </CardHeader>
 
@@ -157,7 +157,7 @@ const EnrollmentsCreate = () => {
                 </FormItem>
 
                 <Button type="submit" size="lg" disabled={isSubmitDisabled}>
-                  {isPending ? "Enrolling..." : "Enroll"}
+                  {isPending ? "Enroling..." : "Enrol"}
                 </Button>
               </form>
             </Form>

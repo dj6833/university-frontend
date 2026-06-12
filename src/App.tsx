@@ -132,7 +132,7 @@ function App() {
                   list: "/enrollments/create",
                   create: "/enrollments/create",
                   meta: {
-                    label: "Enrollments",
+                    label: "Enrolments",
                     icon: <ClipboardCheck />,
                   },
                 },
