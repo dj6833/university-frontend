@@ -38,6 +38,7 @@ import DepartmentsCreate from "./pages/departments/create";
 import DepartmentShow from "./pages/departments/show";
 import FacultyList from "./pages/faculty/list";
 import FacultyShow from "./pages/faculty/show";
+import EnrolmentList from "@/pages/enrollments/list.tsx";
 import EnrollmentsCreate from "./pages/enrollments/create";
 import EnrollmentsJoin from "./pages/enrollments/join";
 import EnrollmentConfirm from "./pages/enrollments/confirm";
@@ -129,7 +130,7 @@ function App() {
                 },
                 {
                   name: "enrollments",
-                  list: "/enrollments/create",
+                  list: "/enrollments",
                   create: "/enrollments/create",
                   meta: {
                     label: "Enrolments",
@@ -201,6 +202,7 @@ function App() {
                   </Route>
 
                   <Route path="enrollments">
+                    <Route index element={<EnrolmentList />} />
                     <Route path="create" element={<EnrollmentsCreate />} />
                     <Route path="join" element={<EnrollmentsJoin />} />
                     <Route path="confirm" element={<EnrollmentConfirm />} />
