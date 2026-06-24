@@ -56,6 +56,27 @@ window.fetch = async (input, init) => {
   });
 };
 
+// const CustomTitle = ({ collapsed }: { collapsed: boolean }) => (
+//     <div className="flex items-center gap-2 px-2 py-1 font-bold text-slate-800">
+//       <GraduationCap className="h-6 w-6 text-indigo-600 flex-shrink-0" />
+//       {!collapsed && <span className="text-base tracking-tight">University of Oakfield</span>}
+//     </div>
+// );
+
+// const PortalTitle = ({ collapsed }: { collapsed: boolean }) => (
+//     <div className="flex items-center gap-2 px-1 py-2 font-bold text-slate-900 select-none">
+//       {/* 🌟 THE LOGO IMAGE: Remains completely locked in place on collapse */}
+//       <img
+//           src="/logo.png"
+//           alt="Logo"
+//           className="h-6 w-6 object-contain flex-shrink-0"
+//       />
+//
+//       {/* 🌟 THE WORKSPACE STRING TEXT: Gracefully fades away only when collapsed */}
+//       {!collapsed && <span className="text-base tracking-tight">AcademyPortal</span>}
+//     </div>
+// );
+
 function App() {
   return (
     <BrowserRouter>
@@ -68,6 +89,17 @@ function App() {
               notificationProvider={useNotificationProvider()}
               routerProvider={routerProvider}
               options={{
+                title: {
+                  text: "University of Oakfield",
+                  //icon: <GraduationCap className="h-6 w-6 text-indigo-600" />,
+                  icon: (
+                      <img
+                          src="/logo.png"
+                          alt="Logo"
+                          className="h-6 w-6 min-w-[24px] min-h-[24px] object-contain flex-shrink-0"
+                      />
+                  ),
+                },
                 syncWithLocation: true,
                 warnWhenUnsavedChanges: true,
                 projectId: "mG476x-8Tj0nI-6mS6lr",
@@ -133,7 +165,7 @@ function App() {
                   list: "/enrollments",
                   create: "/enrollments/create",
                   meta: {
-                    label: "Enrolments",
+                    label: "My Classes",
                     icon: <ClipboardCheck />,
                   },
                 },
@@ -143,7 +175,7 @@ function App() {
                   create: "/classes/create",
                   show: "/classes/show/:id",
                   meta: {
-                    label: "Classes",
+                    label: "All Classes",
                     icon: <GraduationCap />,
                   },
                 },

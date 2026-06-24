@@ -34,6 +34,7 @@ type EnrolmentListItem = {
     id: number;
     status: "active" | "inactive";
     bannerUrl?: string;
+    createdAt?: Date;
     classes?: {
         id: number;
         name: string;
@@ -277,6 +278,23 @@ const EnrolmentList = () => {
                 },
             },
             {
+                id: "createdAt",
+                accessorKey: "createdAt",
+                size: 200,
+                header: () => <p className="column-title">Enrolment Date</p>,
+                cell: ({ row }) => {
+                    const rawDate = row.original?.createdAt;
+                    if (!rawDate) return <span className="text-muted-foreground">-</span>;
+                    const dateObj = new Date(rawDate);
+                    const formattedDate = new Intl.DateTimeFormat("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                    }).format(dateObj);
+                    return <span>{formattedDate}</span>;
+                },
+            },
+            {
                 id: "rowActions",
                 accessorKey: "rowActions",
                 header: () => <p className="column-title text-left">Actions</p>,
@@ -333,10 +351,10 @@ const EnrolmentList = () => {
   return (
     <ListView>
       <Breadcrumb />
-      <h1 className="page-title">Enrolments</h1>
+      <h1 className="page-title">My Classes</h1>
 
       <div className="intro-row">
-        <p>Quick access to essential metrics and management tools.</p>
+        <p>Classes you have enrolled in</p>
 
         <div className="actions-row">
           <div className="search-field">
