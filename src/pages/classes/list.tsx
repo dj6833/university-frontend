@@ -45,8 +45,8 @@ const ClassesList = () => {
             {
         id: "banner",
                 accessorKey: "bannerUrl",
-        size: 120,
-                header: () => <p className="column-title ml-2">Banner</p>,
+        size: 60,
+                header: () => <p className="column-title ml-2"></p>,
         cell: ({ getValue }) => {
           const bannerUrl = getValue<string>();
 

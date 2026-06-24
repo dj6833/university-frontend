@@ -12,86 +12,118 @@ import { ShowButton } from "@/components/refine-ui/buttons/show";
 import { CreateButton } from "@/components/refine-ui/buttons/create";
 
 type EnrolmentListItem = {
-  id: number;
-  name: string;
-  code?: string | null;
-  description?: string | null;
-  totalSubjects?: number | null;
+    id: number;
+    status: "active" | "inactive";
+    bannerUrl?: string;
+    classes?: {
+        id: number;
+        name: string;
+        status: "active" | "inactive";
+        bannerUrl?: string;
+    };
+    subjects?: {
+        name: string;
+    };
+    teacher?: {
+        name: string;
+    };
 };
 
 const EnrolmentList = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const enrolmentColumns = useMemo<ColumnDef<EnrolmentListItem>[]>(
-    () => [
-      {
-        id: "code",
-        accessorKey: "code",
-        size: 120,
-        header: () => <p className="column-title ml-2">Code</p>,
-        cell: ({ getValue }) => {
-          const code = getValue<string>();
+    const enrolmentColumns = useMemo<ColumnDef<EnrolmentListItem>[]>(
+        () => [
+            {
+                id: "banner",
+                accessorKey: "classes.bannerUrl",
+                size: 60,
+                header: () => <p className="column-title ml-2"></p>,
+                cell: ({getValue}) => {
+                    const bannerUrl = getValue<string>();
 
-          return code ? (
-            <Badge>{code}</Badge>
-          ) : (
-            <span className="text-muted-foreground ml-2">No code</span>
-          );
-        },
-      },
-      {
-        id: "name",
-        accessorKey: "name",
-        size: 220,
-        header: () => <p className="column-title">Name</p>,
-        cell: ({ getValue }) => (
-          <span className="text-foreground">{getValue<string>()}</span>
-        ),
-        filterFn: "includesString",
-      },
-      {
-        id: "totalSubjects",
-        accessorKey: "totalSubjects",
-        size: 160,
-        header: () => <p className="column-title">Subjects</p>,
-        cell: ({ getValue }) => {
-          const total = getValue<number>();
-          return <Badge variant="secondary">{total ?? 0}</Badge>;
-        },
-      },
-      {
-        id: "description",
-        accessorKey: "description",
-        size: 320,
-        header: () => <p className="column-title">Description</p>,
-        cell: ({ getValue }) => {
-          const description = getValue<string>();
+                    return bannerUrl ? (
+                        <img
+                            src={bannerUrl}
+                            alt="Class banner"
+                            className="ml-2 h-10 w-10 rounded-md object-cover"
+                            loading="lazy"
+                        />
+                    ) : (
+                        <span className="text-muted-foreground ml-2">No image</span>
+                    );
+                },
+            },
+            {
+                id: "name",
+                accessorKey: "classes.name",
+                size: 220,
+                header: () => <p className="column-title">Class Name</p>,
+                cell: ({getValue}) => (
+                    <span className="text-foreground">{getValue<string>()}</span>
+                ),
+                filterFn: "includesString",
+            },
+            {
+                id: "status",
+                accessorKey: "classes.status",
+                size: 140,
+                header: () => <p className="column-title">Status</p>,
+                cell: ({getValue}) => {
+                    const status = getValue<"active" | "inactive">();
+                    const variant = status === "active" ? "default" : "secondary";
 
-          return description ? (
-            <span className="truncate line-clamp-2">{description}</span>
-          ) : (
-            <span className="text-muted-foreground">No description</span>
-          );
-        },
-      },
-      {
-        id: "details",
-        size: 140,
-        header: () => <p className="column-title">Details</p>,
-        cell: ({ row }) => (
-          <ShowButton
-            resource="departments"
-            recordItemId={row.original.id}
-            variant="outline"
-            size="sm"
-          >
-            View
-          </ShowButton>
-        ),
-      },
-    ],
-    []
-  );
+                    return <Badge variant={variant}>{status}</Badge>;
+                },
+            },
+            {
+                id: "subject",
+                accessorKey: "subjects.name",
+                size: 200,
+                header: () => <p className="column-title">Subject</p>,
+                cell: ({getValue}) => {
+                    const subjectName = getValue<string>();
+
+                    return subjectName ? (
+                        <Badge variant="secondary">{subjectName}</Badge>
+                    ) : (
+                        <span className="text-muted-foreground">Not set</span>
+                    );
+                },
+            },
+            {
+                id: "teacher",
+                accessorKey: "teacher.name",
+                size: 200,
+                header: () => <p className="column-title">Teacher</p>,
+                cell: ({getValue}) => {
+                    const teacherName = getValue<string>();
+
+                    return teacherName ? (
+                        <span className="text-foreground">{teacherName}</span>
+                    ) : (
+                        <span className="text-muted-foreground">Not assigned</span>
+                    );
+                },
+            },
+            {
+                id: "details",
+                size: 140,
+                header: () => <p className="column-title">Details</p>,
+                cell: ({row}) => (
+                    <ShowButton
+                        resource="classes"
+                        recordItemId={row.original.classes?.id}
+                        variant="outline"
+                        size="sm"
+                    >
+                        View
+                    </ShowButton>
+                ),
+            },
+        ],
+        []
+    );
 
   const searchFilters = searchQuery
     ? [
@@ -100,11 +132,7 @@ const EnrolmentList = () => {
           operator: "contains" as const,
           value: searchQuery,
         },
-        {
-          field: "code",
-          operator: "contains" as const,
-          value: searchQuery,
-        },
+
       ]
     : [];
 
@@ -122,7 +150,7 @@ const EnrolmentList = () => {
       sorters: {
         initial: [
           {
-            field: "id",
+            field: "name",
             order: "desc",
           },
         ],
@@ -143,13 +171,13 @@ const EnrolmentList = () => {
             <Search className="search-icon" />
             <Input
               type="text"
-              placeholder="Search by name or code..."
+              placeholder="Search name or subject..."
               className="pl-10 w-full"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
             />
           </div>
-          <CreateButton resource="departments" />
+          <CreateButton resource="enrollments" />
         </div>
       </div>
 
