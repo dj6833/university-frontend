@@ -1,6 +1,6 @@
 import {createDataProvider, CreateDataProviderOptions} from "@refinedev/rest";
 
-import { CreateResponse, GetOneResponse, ListResponse } from "@/types";
+import {CreateResponse, DeleteResponse, GetOneResponse, ListResponse} from "@/types";
 import {BACKEND_BASE_URL} from "@/constants";
 import { HttpError } from "@refinedev/core";
 
@@ -114,6 +114,15 @@ const options: CreateDataProviderOptions = {
     },
   },
 
+  deleteOne: {
+    getEndpoint: ({resource, id}) => `${resource}/${id}`,
+    mapResponse: async (response) => {
+      await checkResponseError(response);
+      const json: DeleteResponse = await response.json();
+      return json.data ?? {};
+    },
+  },
+
   custom: {
     // Refine passes the final URL string directly to the custom method.
     // custom method so far only used by enrolment-recommendations
@@ -141,11 +150,6 @@ const options: CreateDataProviderOptions = {
       };
     },
   },
-
-
-
-
-
 
 
   // custom: async ({ url, method, payload, headers }) => {

@@ -1,4 +1,9 @@
-import { Search } from "lucide-react";
+import {
+    Search,
+    MoreHorizontal,
+    Eye,
+    LogOut,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { useTable } from "@refinedev/react-table";
@@ -10,6 +15,20 @@ import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
 import { DataTable } from "@/components/refine-ui/data-table/data-table";
 import { ShowButton } from "@/components/refine-ui/buttons/show";
 import { CreateButton } from "@/components/refine-ui/buttons/create";
+import { DeleteButton } from "@/components/refine-ui/buttons/delete";
+
+import {useIsMobile} from "@/hooks/use-mobile";
+import {Button} from "@/components/ui/button";
+
+import {DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
+import {
+    Drawer,
+    DrawerContent,
+    DrawerDescription,
+    DrawerHeader,
+    DrawerTitle,
+    DrawerTrigger,
+} from "@/components/ui/drawer";
 
 type EnrolmentListItem = {
     id: number;
@@ -28,6 +47,157 @@ type EnrolmentListItem = {
         name: string;
     };
 };
+
+//todo action-menu is not keyboard accessible currently, below block allows keyboard navigation but not selection and stops mouse selection! WIP...
+// export function RowActionsCell({ enrollment }: any) {
+//     const [open, setOpen] = useState(false);
+//     const isMobile = useIsMobile();
+//
+//     const MenuItems = () => (
+//         <>
+//             <DropdownMenuItem
+//                 asChild
+//                 onSelect={() => setOpen(false)}
+//             >
+//                 <ShowButton
+//                     resource="classes"
+//                     recordItemId={enrollment.classes.id}
+//                     className="w-full justify-start shadow-none bg-transparent text-foreground h-10 px-4 font-normal gap-2 border-0 outline-none cursor-pointer"
+//                 >
+//                     <Eye className="h-4 w-4 text-muted-foreground" />
+//                     <span>View Class</span>
+//                 </ShowButton>
+//             </DropdownMenuItem>
+//
+//             <DropdownMenuItem
+//                 asChild
+//                 onSelect={() => setOpen(false)}
+//             >
+//                 <DeleteButton
+//                     id={enrollment.id}
+//                     resource="enrollments" // Explicitly target your table resource
+//                     className="w-full justify-start shadow-none bg-transparent text-destructive hover:bg-destructive/10 h-10 px-4 font-normal gap-2 border-0 outline-none cursor-pointer"
+//                     >
+//                     <LogOut className="h-4 w-4" />
+//                     <span>Leave Class</span>
+//                 </DeleteButton>
+//             </DropdownMenuItem>
+//         </>
+//     );
+//
+//     if (isMobile) {
+//         return (
+//             <Drawer open={open} onOpenChange={setOpen}>
+//                 <DrawerTrigger asChild>
+//                     <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted">
+//                         <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+//                     </Button>
+//                 </DrawerTrigger>
+//                 <DrawerContent className="p-4 pb-6">
+//                     <DrawerHeader className="text-left px-0 pt-0 pb-4">
+//                         <DrawerTitle>Class Options</DrawerTitle>
+//                         <DrawerDescription>Manage your current schedule settings.</DrawerDescription>
+//                     </DrawerHeader>
+//                     <div className="flex flex-col gap-2">
+//                         <MenuItems />
+//                     </div>
+//                 </DrawerContent>
+//             </Drawer>
+//         );
+//     }
+//
+//     return (
+//         <DropdownMenu open={open} onOpenChange={setOpen}>
+//             <DropdownMenuTrigger asChild>
+//                 <Button variant="ghost"
+//                         className="h-8 w-8 p-0 focus:outline-none focus-visible:bg-muted focus-visible:text-accent-foreground focus-visible:ring-0"
+//      >
+//                     <span className="sr-only">Open menu</span>
+//                     <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+//                 </Button>
+//             </DropdownMenuTrigger>
+//             <DropdownMenuContent align="end" className="w-44 p-1 flex flex-col gap-0.5">
+//                 <MenuItems />
+//             </DropdownMenuContent>
+//         </DropdownMenu>
+//     );
+// }
+
+export function RowActionsCell({ enrollment }: any) {
+    const [open, setOpen] = useState(false);
+    const isMobile = useIsMobile();
+
+    // Clean inline list rendering that propagates standard mouse clicks flawlessly
+    const MenuItems = () => (
+        <>
+            <ShowButton
+                resource="classes"
+                recordItemId={enrollment.classes.id}
+                meta={{
+                    onClick: () => setOpen(false)
+                }}
+                className="w-full justify-start shadow-none bg-transparent hover:bg-muted text-foreground h-10 px-4 font-normal gap-2 border-0 outline-none cursor-pointer"
+            >
+                <Eye className="h-4 w-4 text-muted-foreground" />
+                <span>View Class</span>
+            </ShowButton>
+
+            {/*todo - tbc why the below confirm-* props are complaining? Use defaults for now*/}
+            <DeleteButton
+                recordItemId={enrollment.id}
+                resource="enrollments"
+                //confirmTitle="Leave this class?"
+                // confirmMessage="Are you sure you want to remove yourself from this layout schedule?"
+                // confirmOkText="Yes, Leave"
+                // confirmCancelText="Cancel"
+                className="w-full justify-start shadow-none bg-transparent text-destructive hover:text-destructive hover:bg-destructive/10 h-10 px-4 font-normal gap-2 border-0 outline-none cursor-pointer"
+            >
+                <LogOut className="h-4 w-4" />
+                <span>Leave Class</span>
+            </DeleteButton>
+
+        </>
+    );
+
+    if (isMobile) {
+        return (
+            <Drawer open={open} onOpenChange={setOpen}>
+                <DrawerTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-muted">
+                        <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                </DrawerTrigger>
+                <DrawerContent className="p-4 pb-6">
+                    <DrawerHeader className="text-left px-0 pt-0 pb-4">
+                        <DrawerTitle>Class Options</DrawerTitle>
+                        <DrawerDescription>Manage your current schedule settings.</DrawerDescription>
+                    </DrawerHeader>
+                    <div className="flex flex-col gap-2">
+                        <MenuItems />
+                    </div>
+                </DrawerContent>
+            </Drawer>
+        );
+    }
+
+    return (
+        <DropdownMenu open={open} onOpenChange={setOpen}>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    variant="ghost"
+                    className="h-8 w-8 p-0 focus:outline-none focus-visible:bg-muted focus-visible:text-accent-foreground focus-visible:ring-0"
+                >
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44 p-1 flex flex-col gap-0.5">
+                <MenuItems />
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+}
+
 
 const EnrolmentList = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -107,20 +277,22 @@ const EnrolmentList = () => {
                 },
             },
             {
-                id: "details",
-                size: 140,
-                header: () => <p className="column-title">Details</p>,
-                cell: ({row}) => (
-                    <ShowButton
-                        resource="classes"
-                        recordItemId={row.original.classes?.id}
-                        variant="outline"
-                        size="sm"
-                    >
-                        View
-                    </ShowButton>
-                ),
+                id: "rowActions",
+                accessorKey: "rowActions",
+                header: () => <p className="column-title text-left">Actions</p>,
+                cell: ({ row }) => {
+                    const enrollmentRow = row.original;
+
+                    return (
+                        <div className="text-left pl-1">
+                            <RowActionsCell enrollment={enrollmentRow} />
+                        </div>
+                    );
+                },
             },
+
+
+
         ],
         []
     );
