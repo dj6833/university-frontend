@@ -16,6 +16,7 @@ import {
   ShowViewHeader,
 } from "@/components/refine-ui/views/show-view";
 import type { Department, Subject } from "@/types";
+import {getInitials} from "@/lib/utils.ts";
 
 type SubjectDetails = {
   subject: Subject & {
@@ -326,13 +327,13 @@ const SubjectsShow = () => {
   );
 };
 
-const getInitials = (name = "") => {
-  const parts = name.trim().split(" ").filter(Boolean);
-  if (parts.length === 0) return "";
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "";
-  return `${parts[0][0] ?? ""}${
-    parts[parts.length - 1][0] ?? ""
-  }`.toUpperCase();
-};
+// const getInitials = (name = "") => {
+//   const parts = name.trim().split(" ").filter(Boolean);
+//   if (parts.length === 0) return "";
+//   if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "";
+//   return `${parts[0][0] ?? ""}${
+//     parts[parts.length - 1][0] ?? ""
+//   }`.toUpperCase();
+// };
 
 export default SubjectsShow;

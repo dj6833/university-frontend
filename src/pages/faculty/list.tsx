@@ -14,6 +14,7 @@ import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
 import { DataTable } from "@/components/refine-ui/data-table/data-table";
 import { ShowButton } from "@/components/refine-ui/buttons/show";
 import type { User } from "@/types";
+import {getInitials} from "@/lib/utils.ts";
 
 const FacultyList = () => {
   useDocumentTitle(`Staff ${APP_TITLE_SUFFIX}`);
@@ -144,11 +145,11 @@ const FacultyList = () => {
   );
 };
 
-const getInitials = (name = "") => {
-  const parts = name.trim().split(" ");
-  if (parts.length === 0) return "";
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "";
-  return `${parts[0][0] ?? ""}${parts[parts.length - 1][0] ?? ""}`.toUpperCase();
-};
+// const getInitials = (name = "") => {
+//   const parts = name.trim().split(" ");
+//   if (parts.length === 0) return "";
+//   if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "";
+//   return `${parts[0][0] ?? ""}${parts[parts.length - 1][0] ?? ""}`.toUpperCase();
+// };
 
 export default FacultyList;

@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { bannerPhoto } from "@/lib/cloudinary";
 import {ClassDetails} from "@/types";
+import {getInitials} from "@/lib/utils.ts";
 
 type ClassUser = {
   id: string;
@@ -251,13 +252,13 @@ const ClassesShow = () => {
   );
 };
 
-const getInitials = (name = "") => {
-  const parts = name.trim().split(" ").filter(Boolean);
-  if (parts.length === 0) return "";
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "";
-  return `${parts[0][0] ?? ""}${
-    parts[parts.length - 1][0] ?? ""
-  }`.toUpperCase();
-};
+// const getInitials = (name = "") => {
+//   const parts = name.trim().split(" ").filter(Boolean);
+//   if (parts.length === 0) return "";
+//   if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "";
+//   return `${parts[0][0] ?? ""}${
+//     parts[parts.length - 1][0] ?? ""
+//   }`.toUpperCase();
+// };
 
 export default ClassesShow;

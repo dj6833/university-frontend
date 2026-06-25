@@ -18,13 +18,15 @@ import { useCustom } from "@refinedev/core";
 
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { Sparkles, GraduationCap, BookOpen, User } from "lucide-react";
+import { Sparkles, GraduationCap, BookOpen, User, Bookmark, HelpCircle } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { dataProvider } from "@/providers/data";
 
 import { useSearchParams } from "react-router";
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar.tsx";
+import {getInitials} from "@/lib/utils.ts";
 
 // import {DropdownMenu, DropdownMenuContent, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 // import {
@@ -42,288 +44,210 @@ import { useSearchParams } from "react-router";
 
 interface RecommendationItem {
     id: number;
+    name: string;
     classId: string;
+    status: string;
     match_strength: number;
     bannerUrl?: string;
     subject?: { name: string; code: string };
-    teacher?: { name: string; email: string };
+    teacher?: { name: string; email: string; image: string };
 }
 
 interface RecommendationApiResponse {
     data: RecommendationItem[];
 }
 
-// type RecommendedClassesListItem = {
-//     id: number;
-//     name: string;
-//     status: "active" | "inactive";
-//     bannerUrl?: string;
-//     match_strength: number;
-//     subjects?: {
-//         name: string;
-//     };
-//     teacher?: {
-//         name: string;
-//     };
-// };
+export const RecommendationsVisualGrid = ({ data }: { data: RecommendationItem[] }) => {
+	useDocumentTitle(`Recommended Classes ${APP_TITLE_SUFFIX}`);
+    // 🌟 HELPER RULE: Evaluates your match strength percentage and returns a clean, compliant RAG styling token
+    const getRagStyles = (strength: number) => {
+        if (strength >= 80) {
+            return "bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-400"; // Red-Amber-Green: Green (Strong Match)
+        }
+        if (strength >= 65) {
+            return "bg-amber-50 text-amber-700 border-amber-200/60 dark:bg-amber-950/40 dark:text-amber-400";   // Red-Amber-Green: Amber (Medium Match)
+        }
+        return "bg-rose-50 text-rose-700 border-rose-200/60 dark:bg-rose-950/40 dark:text-rose-400";       // Red-Amber-Green: Red (Lower Match)
+    };
 
-// const RecommendedClassList = () => {
-//     //const [searchQuery, setSearchQuery] = useState("");
-//     //const navigate = useNavigate();
-//
-//     const RecommendedClassesColumns = useMemo<ColumnDef<RecommendedClassesListItem>[]>(
-//         () => [
-//             {
-//                 id: "banner",
-//                 accessorKey: "bannerUrl",
-//                 size: 60,
-//                 header: () => <p className="column-title ml-2"></p>,
-//                 cell: ({getValue}) => {
-//                     const bannerUrl = getValue<string>();
-//
-//                     return bannerUrl ? (
-//                         <img
-//                             src={bannerUrl}
-//                             alt="Class banner"
-//                             className="ml-2 h-10 w-10 rounded-md object-cover"
-//                             loading="lazy"
-//                         />
-//                     ) : (
-//                         <span className="text-muted-foreground ml-2">No image</span>
-//                     );
-//                 },
-//             },
-//             {
-//                 id: "name",
-//                 accessorKey: "name",
-//                 size: 220,
-//                 header: () => <p className="column-title">Class Name</p>,
-//                 cell: ({getValue}) => (
-//                     <span className="text-foreground">{getValue<string>()}</span>
-//                 ),
-//                 filterFn: "includesString",
-//             },
-//             {
-//                 id: "status",
-//                 accessorKey: "status",
-//                 size: 140,
-//                 header: () => <p className="column-title">Status</p>,
-//                 cell: ({getValue}) => {
-//                     const status = getValue<"active" | "inactive">();
-//                     const variant = status === "active" ? "default" : "secondary";
-//
-//                     return <Badge variant={variant}>{status}</Badge>;
-//                 },
-//             },
-//             {
-//                 id: "subject",
-//                 accessorKey: "subjects.name",
-//                 size: 200,
-//                 header: () => <p className="column-title">Subject</p>,
-//                 cell: ({getValue}) => {
-//                     const subjectName = getValue<string>();
-//
-//                     return subjectName ? (
-//                         <Badge variant="secondary">{subjectName}</Badge>
-//                     ) : (
-//                         <span className="text-muted-foreground">Not set</span>
-//                     );
-//                 },
-//             },
-//             {
-//                 id: "teacher",
-//                 accessorKey: "teacher.name",
-//                 size: 200,
-//                 header: () => <p className="column-title">Teacher</p>,
-//                 cell: ({getValue}) => {
-//                     const teacherName = getValue<string>();
-//
-//                     return teacherName ? (
-//                         <span className="text-foreground">{teacherName}</span>
-//                     ) : (
-//                         <span className="text-muted-foreground">Not assigned</span>
-//                     );
-//                 },
-//             },
-//             {
-//                 id: "details",
-//                 size: 140,
-//                 header: () => <p className="column-title">Details</p>,
-//                 cell: ({ row }) => (
-//                     <ShowButton
-//                         resource="classes"
-//                         recordItemId={row.original.id}
-//                         variant="outline"
-//                         size="sm"
-//                     >
-//                         View
-//                     </ShowButton>
-//                 ),
-//             },
-//
-//         ],
-//         []
-//     );
-//
-//     // const searchFilters = searchQuery
-//     //     ? [
-//     //         {
-//     //             field: "name",
-//     //             operator: "contains" as const,
-//     //             value: searchQuery,
-//     //         },
-//     //     ]
-//     //     : [];
-//
-//     const RecommendedClassesTable = useTable<RecommendedClassesListItem>({
-//         columns: RecommendedClassesColumns,
-//         refineCoreProps: {
-//             resource: "enrollments",
-//             pagination: {
-//                 pageSize: 10,
-//                 mode: "server",
-//             },
-//             // filters: {
-//             //     permanent: [...searchFilters],
-//             //},
-//             sorters: {
-//                 initial: [
-//                     {
-//                         field: "name",
-//                         order: "desc",
-//                     },
-//                 ],
-//             },
-//         },
-//     });
-//
-//     return (
-//         <ListView>
-//             <Breadcrumb />
-//             <h1 className="page-title">My Class Recommendations</h1>
-//             <div className="intro-row">
-//                 <p>Below are your recommended classes, based on classes that similar students have been joining</p>
-//                 <div className="actions-row">
-//                     {/*<div className="search-field">*/}
-//                     {/*    <Search className="search-icon" />*/}
-//                     {/*    <Input*/}
-//                     {/*        type="text"*/}
-//                     {/*        placeholder="Search name or subject..."*/}
-//                     {/*        className="pl-10 w-full h-9"*/}
-//                     {/*        value={searchQuery}*/}
-//                     {/*        onChange={(event) => setSearchQuery(event.target.value)}*/}
-//                     {/*    />*/}
-//                     {/*</div>*/}
-//                 </div>
-//             </div>
-//
-//             <DataTable table={RecommendedClassesTable} />
-//
-//         </ListView>
-//     );
-//
-// };
+    return (
+        <div className="w-full space-y-6">
+            {/* 1. Responsive Multi-Column Grid Space */}
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+                {data.map((item) => {
+                    const ragClass = getRagStyles(item.match_strength);
+                    const status = item.status; // <"active" | "inactive">();
+                    const statusVariant = status === "active" ? "default" : "secondary";
+
+                    return (
+                        <div
+                            key={item.id}
+                            className="group flex flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
+                        >
+                            <div className="relative aspect-[16/10] w-full bg-slate-100 overflow-hidden">
+                                {item.bannerUrl ? (
+                                    <img
+                                        src={item.bannerUrl}
+                                        alt={item.subject?.name || "Class Cover"}
+                                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                    />
+                                ) : (
+                                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-50 to-slate-100 text-indigo-400">
+                                        <Bookmark className="h-10 w-10 opacity-40" />
+                                    </div>
+                                )}
+
+                                <div className={`absolute right-3 top-3 inline-flex items-center rounded-lg border px-2.5 py-1 text-xs font-bold shadow-xs backdrop-blur-md ${ragClass}`}>
+                                    <Sparkles className="mr-1 h-3 w-3" />
+                                    {item.match_strength}% Match
+                                </div>
+                            </div>
+
+                            <div className="flex flex-1 flex-col p-5">
+                                <Badge className=" h-5" variant={statusVariant}>{status.toUpperCase()}</Badge>
+
+                                <h3 className="mt-1 text-base font-bold text-slate-900 line-clamp-1">
+                                    {item.name || "Unassigned Class Name"}
+                                </h3>
+
+                                <div className="mt-4 flex items-center gap-2 text-xs text-slate-600">
+                                    {/*<User className="h-3.5 w-3.5 text-slate-400 shrink-0" />*/}
+                                    <Avatar className="size-7">
+                                        {item.teacher?.image && (
+                                            <AvatarImage src={item.teacher?.image} alt={item.teacher?.name} />
+                                        )}
+                                        <AvatarFallback>{getInitials(item.teacher?.name)}</AvatarFallback>
+                                    </Avatar>
+                                    <span className="truncate font-medium">
+                                        {item.teacher?.name || "Instructor Unassigned"}
+                                    </span>
+                                </div>
+
+                                {/* Divider Line */}
+                                <div className="my-4 border-t border-slate-100" />
+
+                                {/* Row 4 & 5: Functional Footer Metrics (Database IDs & Action Hooks) */}
+                                <div className="mt-auto flex items-center justify-between gap-2">
+                                    <div className="flex flex-col text-[10px] font-mono text-slate-400">
+                                        {/*<span>RECORD ID: {item.id}</span>*/}
+                                        {
+                                            item.subject?.name ? (
+                                            <Badge variant="secondary">{item.subject.name}</Badge>
+                                            ) : (
+                                            <span className="text-muted-foreground">(Subject Unknown)</span>
+                                            )
+                                        }
+                                    </div>
+
+                                    <ShowButton
+                                        resource="classes"
+                                        recordItemId={item.id}
+                                        variant="outline"
+                                        size="sm"
+                                    >
+                                        View Class
+                                    </ShowButton>
+
+                                    {/*<Button*/}
+                                    {/*    size="sm"*/}
+                                    {/*    className="h-8 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90"*/}
+                                    {/*    onClick={() => console.log(`Quick join sequence triggered for entry: ${item.id}`)}*/}
+                                    {/*>*/}
+                                    {/*    View Class*/}
+                                    {/*</Button>*/}
+                                </div>
+
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
 
 export const RecommendedClassList = () => {
-    useDocumentTitle(`Recommended Classes ${APP_TITLE_SUFFIX}`);
+    // Extract your environment backend url prefix: http://localhost:8000/api
     const apiBaseUrl = dataProvider.getApiUrl();
-    useDocumentTitle("My Custom Title");
+	useDocumentTitle("My Custom Title");
 
-    const { query } = useCustom<RecommendationItem>({
-        // 🌟 THE FIX: Combine the base URL with your relative target path!
-        // Compiles cleanly to: http://localhost:8000/api/enrollments/recommendations
+    const { query } = useCustom<RecommendationItem[]>({
         url: `${apiBaseUrl}enrollments/recommendations`,
         method: "get",
         queryOptions: {
-            queryKey: ["custom-enrollments-recommendations-page-view"],
+            //queryKey: ["custom-enrollments-recommendations-page-view"],
             retry: false,
             refetchOnWindowFocus: false,
         }
     });
 
-    // const { query } = useCustom<RecommendationItem>({
-    //     url: "api/enrollments/recommendations", // Refine prepends your base API URL automatically
-    //     method: "get",
-    //     queryOptions: {
-    //         // Assign an isolated, explicit unique key tracker block for this specific screen list layout
-    //         queryKey: ["custom-enrollments-recommendations-page-view"],
-    //
-    //         // Safety guards to keep it running smoothly
-    //         retry: false,
-    //         refetchOnWindowFocus: false,
-    //     }
-    // });
 
-    // 3. Drill through the data wrapper structure safely
     const recommendations: RecommendationItem[] = (query.data as any)?.data?.data ?? [];
     const isLoading = query.isLoading;
-    const isError = query.error;
+    const isError = query.isError;
 
-    // 4. Loading Skeleton State Layout
     if (isLoading) {
         return (
-            <div className="p-6 max-w-5xl mx-auto space-y-6">
-                <Skeleton className="h-10 w-1/3" />
-                <div className="grid gap-4 md:grid-cols-2">
-                    {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-40 w-full rounded-xl" />)}
+            <div className="p-6 max-w-7xl mx-auto space-y-6">
+                <div className="space-y-2">
+                    <Skeleton className="h-9 w-1/4 rounded-md" />
+                    <Skeleton className="h-4 w-1/3 rounded-md" />
+                </div>
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {[1, 2, 3, 4, 5, 6].map((idx) => (
+                        <div key={idx} className="border border-slate-100 rounded-xl overflow-hidden bg-white p-0 space-y-4">
+                            <Skeleton className="aspect-[16/10] w-full" />
+                            <div className="p-5 space-y-3">
+                                <Skeleton className="h-3 w-1/4" />
+                                <Skeleton className="h-5 w-3/4" />
+                                <Skeleton className="h-4 w-1/2 mt-4" />
+                                <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
+                                    <Skeleton className="h-3 w-1/3" />
+                                    <Skeleton className="h-8 w-20 rounded-lg" />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         );
     }
 
-    if (isError) return <div className="p-6 text-destructive">Failed to calculate matching tracks.</div>;
+    if (isError) {
+        return (
+            <div className="p-6 max-w-7xl mx-auto text-center py-20">
+                <p className="text-destructive font-medium">Failed to calculate curriculum tracks.</p>
+                <p className="text-xs text-muted-foreground mt-1">Please check your Node.js console logs or backend connection.</p>
+            </div>
+        );
+    }
 
     return (
-        <div className="p-6 max-w-5xl mx-auto space-y-6 animate-in fade-in duration-300">
-            {/* Page Header */}
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                    <Sparkles className="h-6 w-6 text-primary animate-pulse" />
-                    Recommended Classes
-                </h1>
-                <p className="text-muted-foreground text-sm mt-1">
-                    Personalized curriculum tracks computed via peer-student scheduling models.
-                </p>
+        <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300">
+
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+                        <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+                        Recommended Classes
+                    </h1>
+                    <p className="text-muted-foreground text-sm mt-1">
+                        Consider these classes, popular with students matching your academic profile
+                    </p>
+                </div>
+                <div className="text-xs font-medium text-muted-foreground bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/40 self-start md:self-auto">
+                    Top {recommendations.length} Matches Found
+                </div>
             </div>
 
-            {/* Grid Track Layout */}
             {recommendations.length === 0 ? (
-                <div className="text-center p-12 text-muted-foreground border border-dashed rounded-lg">
-                    No matching pathways calculated at this time. Check back later!
+                <div className="text-center py-20 text-muted-foreground border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                    No recommended classes available for your account yet. Try signing up for some classes to create an academic profile
                 </div>
             ) : (
-                <div className="grid gap-4 sm:grid-cols-2">
-                    {recommendations.map((item) => (
-                        <Card key={item.id} className="hover:border-primary/40 transition-colors shadow-none bg-white">
-                            <CardHeader className="pb-2 flex flex-row items-start justify-between space-y-0">
-                                <div className="space-y-1">
-                  <span className="text-xs font-mono uppercase bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
-                    {item.subject?.code || `CLASS #${item.classId}`}
-                  </span>
-                                    <CardTitle className="text-lg font-bold mt-2">
-                                        {item.subject?.name || "Subject Code"}
-                                    </CardTitle>
-                                </div>
-                                {/* Visual Highlight Badge */}
-                                <div className="flex flex-col items-end shrink-0">
-                  <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">
-                    {item.match_strength}% Match
-                  </span>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="pt-2 text-sm text-muted-foreground space-y-2">
-                                <div className="flex items-center gap-2">
-                                    <User className="h-4 w-4 text-muted-foreground/60" />
-                                    <span>{item.teacher?.name || "Instructor Unassigned"}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground/40">
-                                    <span>Class Record Primary ID: {item.id}</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+                <RecommendationsVisualGrid data={recommendations} />
             )}
+
         </div>
     );
 };
