@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { useShow } from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
 import { ColumnDef } from "@tanstack/react-table";
@@ -35,6 +37,7 @@ type FacultySubject = {
 };
 
 const FacultyShow = () => {
+  useDocumentTitle(`Staff Details ${APP_TITLE_SUFFIX}`);
   const { id } = useParams();
   const userId = id ?? "";
 

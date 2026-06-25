@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { useLink, useShow } from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
 import { ColumnDef } from "@tanstack/react-table";
@@ -46,6 +48,7 @@ type SubjectUser = {
 };
 
 const SubjectsShow = () => {
+  useDocumentTitle(`Subject Details ${APP_TITLE_SUFFIX}`);
   const Link = useLink();
   const { id } = useParams();
   const subjectId = id ?? "";

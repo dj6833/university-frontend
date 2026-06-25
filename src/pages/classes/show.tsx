@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { AdvancedImage } from "@cloudinary/react";
 import {useShow} from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
@@ -28,6 +30,7 @@ type ClassUser = {
 };
 
 const ClassesShow = () => {
+  useDocumentTitle(`Class Details ${APP_TITLE_SUFFIX}`);
   const { id } = useParams();
   const classId = id ?? "";
 

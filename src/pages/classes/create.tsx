@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { useForm } from "@refinedev/react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -32,6 +34,7 @@ import {Subject, User} from "@/types";
 import z from "zod";
 
 const ClassesCreate = () => {
+    useDocumentTitle(`Create a Class ${APP_TITLE_SUFFIX}`);
     const back = useBack();
 
     const form = useForm({

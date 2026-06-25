@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { useMemo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { useTable } from "@refinedev/react-table";
@@ -21,6 +23,8 @@ import { Sparkles, GraduationCap, BookOpen, User } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { dataProvider } from "@/providers/data";
+
+import { useSearchParams } from "react-router";
 
 // import {DropdownMenu, DropdownMenuContent, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 // import {
@@ -220,8 +224,9 @@ interface RecommendationApiResponse {
 // };
 
 export const RecommendedClassList = () => {
+    useDocumentTitle(`Recommended Classes ${APP_TITLE_SUFFIX}`);
     const apiBaseUrl = dataProvider.getApiUrl();
-
+    useDocumentTitle("My Custom Title");
 
     const { query } = useCustom<RecommendationItem>({
         // 🌟 THE FIX: Combine the base URL with your relative target path!

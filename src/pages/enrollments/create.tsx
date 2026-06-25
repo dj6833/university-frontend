@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -54,6 +56,7 @@ interface RecommendationApiResponse {
 }
 
 export const EnrollmentsPage = () => {
+  useDocumentTitle(`Enrol in a Class ${APP_TITLE_SUFFIX}`);
   // 1. Destructure "query" directly from useCustom (matches Refine's design pattern)
   const { query } = useCustom<RecommendationItem[]>({
     url: "http://localhost:8000/api/enrollments/recommendations",
@@ -103,6 +106,7 @@ const enrollSchema = z.object({
 type EnrollFormValues = z.infer<typeof enrollSchema>;
 
 const EnrollmentsCreate = () => {
+  useDocumentTitle(`Enrol in a Class ${APP_TITLE_SUFFIX}`);
   const navigate = useNavigate();
   const {
     mutateAsync: createEnrollment,

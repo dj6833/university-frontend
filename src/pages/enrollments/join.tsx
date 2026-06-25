@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -27,6 +29,7 @@ const joinSchema = z.object({
 type JoinFormValues = z.infer<typeof joinSchema>;
 
 const EnrollmentsJoin = () => {
+  useDocumentTitle(`Enrol in a Class ${APP_TITLE_SUFFIX}`);
   const navigate = useNavigate();
   const {
     mutateAsync: joinEnrollment,

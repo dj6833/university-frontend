@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { useLocation, useNavigate } from "react-router";
 
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +30,7 @@ type EnrollmentDetails = {
 };
 
 const EnrollmentConfirm = () => {
+  useDocumentTitle(`Enrolment Confirmation ${APP_TITLE_SUFFIX}`);
   const location = useLocation();
   const navigate = useNavigate();
 

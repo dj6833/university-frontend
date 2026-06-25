@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
@@ -14,6 +16,7 @@ import { ShowButton } from "@/components/refine-ui/buttons/show";
 import type { User } from "@/types";
 
 const FacultyList = () => {
+  useDocumentTitle(`Staff ${APP_TITLE_SUFFIX}`);
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(
     searchParams.get("search") ?? ""
@@ -117,10 +120,10 @@ const FacultyList = () => {
   return (
     <ListView>
       <Breadcrumb />
-      <h1 className="page-title">Faculty</h1>
+      <h1 className="page-title">Staff</h1>
 
       <div className="intro-row">
-        <p>Browse and manage faculty members.</p>
+        <p>Browse and manage staff members.</p>
 
         <div className="actions-row">
           <div className="search-field">

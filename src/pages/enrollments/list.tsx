@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import {
     Search,
     MoreHorizontal,
@@ -255,6 +257,7 @@ export function RowActionsCell({ enrollment }: any) {
 
 
 const EnrolmentList = () => {
+  useDocumentTitle(`My Classes ${APP_TITLE_SUFFIX}`);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 

@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
@@ -20,6 +22,7 @@ type DepartmentListItem = {
 };
 
 const DepartmentsList = () => {
+  useDocumentTitle(`Departments ${APP_TITLE_SUFFIX}`);
   const [searchQuery, setSearchQuery] = useState("");
 
   const departmentColumns = useMemo<ColumnDef<DepartmentListItem>[]>(

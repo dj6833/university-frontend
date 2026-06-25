@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { useMemo } from "react";
 import { useLink, useList } from "@refinedev/core";
 import {
@@ -20,6 +22,8 @@ import {
   Users,
 } from "lucide-react";
 
+
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -40,6 +44,7 @@ type ClassListItem = {
 const roleColors = ["#f97316", "#0ea5e9", "#22c55e", "#a855f7"];
 
 const Dashboard = () => {
+  useDocumentTitle(`Dashboard ${APP_TITLE_SUFFIX}`);
   const Link = useLink();
   const { query: usersQuery } = useList<User>({
     resource: "users",
@@ -258,7 +263,7 @@ const Dashboard = () => {
                         roleColors[index % roleColors.length],
                     }}
                   />
-                  {entry.role} · {entry.total}
+                  {entry.role} ï¿½ {entry.total}
                 </span>
               ))}
             </div>
@@ -366,7 +371,7 @@ const Dashboard = () => {
                   <div>
                     <p className="text-sm font-medium">{item.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {item.subject?.name ?? "No subject"} ·{" "}
+                      {item.subject?.name ?? "No subject"} ï¿½{" "}
                       {item.teacher?.name ?? "No teacher"}
                     </p>
                   </div>
