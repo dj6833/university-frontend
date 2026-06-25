@@ -44,6 +44,7 @@ interface RecommendationItem {
     id: number;
     classId: string;
     match_strength: number;
+    bannerUrl?: string;
     subject?: { name: string; code: string };
     teacher?: { name: string; email: string };
 }

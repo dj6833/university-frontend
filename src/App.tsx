@@ -45,6 +45,7 @@ import EnrollmentsCreate from "./pages/enrollments/create";
 import EnrollmentsJoin from "./pages/enrollments/join";
 import EnrollmentConfirm from "./pages/enrollments/confirm";
 import RecommendedClassList from "@/pages/enrollments/recommendations.tsx";
+import RecommendedClassListOpt1 from "@/pages/enrollments/recommendationsOpt1.tsx";
 
 /*
 Globally force all browser fetch requests to include cookies, ensuring our session cookie is passed
@@ -331,6 +332,7 @@ function App() {
                     <Route path="join" element={<EnrollmentsJoin />} />
                     <Route path="confirm" element={<EnrollmentConfirm />} />
                     <Route path="recommendations" element={<RecommendedClassList />} />
+                    <Route path="recommendationsOpt1" element={<RecommendedClassListOpt1 />} />
                   </Route>
 
                   <Route path="classes">
