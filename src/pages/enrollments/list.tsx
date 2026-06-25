@@ -3,6 +3,9 @@ import {
     MoreHorizontal,
     Eye,
     LogOut,
+    Sparkles,
+    ArrowRight,
+    X
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
@@ -14,13 +17,12 @@ import { ListView } from "@/components/refine-ui/views/list-view";
 import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
 import { DataTable } from "@/components/refine-ui/data-table/data-table";
 import { ShowButton } from "@/components/refine-ui/buttons/show";
-import { CreateButton } from "@/components/refine-ui/buttons/create";
 import { DeleteButton } from "@/components/refine-ui/buttons/delete";
 
 import {useIsMobile} from "@/hooks/use-mobile";
 import {Button} from "@/components/ui/button";
 
-import {DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {
     Drawer,
     DrawerContent,
@@ -29,6 +31,58 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from "@/components/ui/drawer";
+
+import { useNavigate } from "react-router";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+export const RecommendationsBanner = () => {
+    const navigate = useNavigate();
+    const [isVisible, setIsVisible] = useState(true);
+
+    if (!isVisible) return null;
+
+    return (
+        <Alert className="relative mb-6 flex items-start justify-between border border-primary/20 bg-primary/5 p-4 pr-12 shadow-none transition-all dark:bg-primary/10">
+            <div className="flex gap-3">
+                <div className="mt-0.5 rounded-md bg-primary/10 p-1.5 text-primary">
+                    <Sparkles className="h-4 w-4 animate-pulse" />
+                </div>
+                <div>
+                    <AlertTitle className="text-sm font-semibold text-foreground tracking-tight">
+                        Looking for your next class?
+                    </AlertTitle>
+                    <AlertDescription className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                        We’ve analysed your current academic choices for class options matching similar students. Take a look at your top recommendations.
+                    </AlertDescription>
+                </div>
+            </div>
+
+            <div className="flex items-center gap-4 shrink-0">
+                <Button
+                    variant="link"
+                    size="sm"
+                    className="h-8 gap-1 p-0 font-semibold text-primary hover:text-primary/80 text-xs"
+                    onClick={() => navigate("/enrollments/recommendations")}
+                >
+                    <span>View Recommendations</span>
+                    <ArrowRight className="h-3 w-3" />
+                </Button>
+            </div>
+
+            <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-2 top-2 h-7 w-7 text-muted-foreground/60 hover:bg-primary/10 hover:text-foreground hidden"
+                onClick={() => setIsVisible(false)}
+            >
+                <X className="h-3.5 w-3.5" />
+                <span className="sr-only">Dismiss banner</span>
+            </Button>
+
+        </Alert>
+    );
+};
 
 type EnrolmentListItem = {
     id: number;
@@ -202,6 +256,7 @@ export function RowActionsCell({ enrollment }: any) {
 
 const EnrolmentList = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
     const enrolmentColumns = useMemo<ColumnDef<EnrolmentListItem>[]>(
         () => [
@@ -309,8 +364,6 @@ const EnrolmentList = () => {
                 },
             },
 
-
-
         ],
         []
     );
@@ -322,7 +375,6 @@ const EnrolmentList = () => {
           operator: "contains" as const,
           value: searchQuery,
         },
-
       ]
     : [];
 
@@ -348,32 +400,35 @@ const EnrolmentList = () => {
     },
   });
 
-  return (
-    <ListView>
-      <Breadcrumb />
-      <h1 className="page-title">My Classes</h1>
+    return (
+        <ListView>
+            <Breadcrumb />
+            <h1 className="page-title">My Classes</h1>
+            <div className="intro-row">
+                <p>Classes you have enrolled in</p>
+                <div className="actions-row">
+                    <div className="search-field">
+                        <Search className="search-icon" />
+                        <Input
+                            type="text"
+                            placeholder="Search name or subject..."
+                            className="pl-10 w-full h-9"
+                            value={searchQuery}
+                            onChange={(event) => setSearchQuery(event.target.value)}
+                        />
+                    </div>
+                </div>
+            </div>
 
-      <div className="intro-row">
-        <p>Classes you have enrolled in</p>
+            <div className="w-full">
+                <RecommendationsBanner />
+            </div>
 
-        <div className="actions-row">
-          <div className="search-field">
-            <Search className="search-icon" />
-            <Input
-              type="text"
-              placeholder="Search name or subject..."
-              className="pl-10 w-full"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-            />
-          </div>
-          <CreateButton resource="enrollments" />
-        </div>
-      </div>
+            <DataTable table={enrolmentTable} />
 
-      <DataTable table={enrolmentTable} />
-    </ListView>
-  );
+        </ListView>
+    );
+
 };
 
 export default EnrolmentList;
