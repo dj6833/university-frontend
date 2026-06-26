@@ -9,6 +9,7 @@ import {
     ArrowRight,
     X
 } from "lucide-react";
+import { useMenu, useNavigation } from "@refinedev/core";
 import { useMemo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { useTable } from "@refinedev/react-table";
@@ -65,7 +66,7 @@ export const RecommendationsBanner = () => {
                     variant="link"
                     size="sm"
                     className="h-8 gap-1 p-0 font-semibold text-primary hover:text-primary/80 text-xs"
-                    onClick={() => navigate("/enrollments/recommendations")}
+                    onClick={() => navigate("/classes/recommendations")}
                 >
                     <span>View Recommendations</span>
                     <ArrowRight className="h-3 w-3" />
@@ -258,6 +259,17 @@ export function RowActionsCell({ enrollment }: any) {
 
 const EnrolmentList = () => {
   useDocumentTitle(`My Classes ${APP_TITLE_SUFFIX}`);
+
+    /*this block was to get the URL and Text of "All Classes" list screen, so it can be displayed if no records.
+      fiddly, likely needs the data table overloaded to accept HTML so a button/link can be displayed, todo later
+
+    const { menuItems } = useMenu();
+    const classesItem = menuItems.find((item) => item.name === "classes");
+    const { listUrl } = useNavigation();
+    const allClassesLabel = classesItem?.label ?? "All Classes";
+    const allClassesUrl = listUrl("classes");
+    */
+
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
@@ -427,8 +439,11 @@ const EnrolmentList = () => {
                 <RecommendationsBanner />
             </div>
 
-            <DataTable table={enrolmentTable} />
-
+            <DataTable
+                table={enrolmentTable}
+                emptyTitle="You haven't joined any classes yet"
+                emptyDescription="Any classes you join will be visible here"
+            />
         </ListView>
     );
 

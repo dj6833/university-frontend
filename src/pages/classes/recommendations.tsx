@@ -4,25 +4,32 @@ import { useMemo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { useTable } from "@refinedev/react-table";
 
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { ListView } from "@/components/refine-ui/views/list-view";
-import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
-import { DataTable } from "@/components/refine-ui/data-table/data-table";
-import { ShowButton } from "@/components/refine-ui/buttons/show";
+import { Badge } from "@/components/ui/badge.tsx";
+import { Input } from "@/components/ui/input.tsx";
+import { ListView, ListViewHeader} from "@/components/refine-ui/views/list-view.tsx";
+import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb.tsx";
+import { DataTable } from "@/components/refine-ui/data-table/data-table.tsx";
+import { ShowButton } from "@/components/refine-ui/buttons/show.tsx";
 
-import {useIsMobile} from "@/hooks/use-mobile";
-import {Button} from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+// import {
+//     ShowView,
+//     ShowViewHeader,
+// } from "@/components/refine-ui/views/show-view.tsx";
+
+import {useIsMobile} from "@/hooks/use-mobile.ts";
+import {Button} from "@/components/ui/button.tsx";
 
 import { useCustom } from "@refinedev/core";
 
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton.tsx";
 
 import { Sparkles, GraduationCap, BookOpen, User, Bookmark, HelpCircle } from "lucide-react";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card.tsx";
 
-import { dataProvider } from "@/providers/data";
+import { dataProvider } from "@/providers/data.ts";
 
 import { useSearchParams } from "react-router";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar.tsx";
@@ -183,7 +190,7 @@ export const RecommendedClassList = () => {
 	useDocumentTitle("My Custom Title");
 
     const { query } = useCustom<RecommendationItem[]>({
-        url: `${apiBaseUrl}enrollments/recommendations`,
+        url: `${apiBaseUrl}classes/recommendations`,
         method: "get",
         queryOptions: {
             //queryKey: ["custom-enrollments-recommendations-page-view"],
@@ -234,32 +241,62 @@ export const RecommendedClassList = () => {
     }
 
     return (
-        <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300">
+        <ListView>
+            <ListViewHeader
+                title="Recommended Classes"
+                resource="class-recommendations" // Uses your registered resource config block
+            />
 
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
-                <div>
-                    <Sparkles className="h-6 w-6 text-primary animate-pulse" />
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                        Recommended Classes
-                    </h1>
-                    <p className="text-muted-foreground text-sm mt-1">
-                        Consider these classes, popular with students matching your academic profile
-                    </p>
-                </div>
-                <div className="text-xs font-medium text-muted-foreground bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/40 self-start md:self-auto">
-                    Top {recommendations.length} Matches Found
-                </div>
+            <div className="space-y-6 mt-1">
+                {/* Your premium subtitle text */}
+                <p className="text-muted-foreground text-sm">
+                    Consider these classes, popular with students matching your academic profile.
+                </p>
+
+                {/* Your 3-column recommendation card grid */}
+                {recommendations.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center text-center p-12 border border-dashed rounded-xl bg-slate-50/50">
+                        {/* Table Title Styling */}
+                        <h3 className="text-lg font-semibold text-foreground tracking-tight">
+                            No recommended classes available
+                        </h3>
+
+                        {/* Table Subtitle/Description Styling */}
+                        <p className="text-sm text-muted-foreground mt-1 max-w-md">
+                            Join at least one class to access your personalised recommendations.
+                        </p>
+                    </div>
+                ) : (
+                    <RecommendationsVisualGrid data={recommendations} />
+                )}
             </div>
 
-            {recommendations.length === 0 ? (
-                <div className="text-center py-20 text-muted-foreground border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-                    No recommended classes available for your account yet. Try signing up for some classes to create an academic profile
-                </div>
-            ) : (
-                <RecommendationsVisualGrid data={recommendations} />
-            )}
+            {/*<div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300">*/}
 
-        </div>
+            {/*<div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">*/}
+            {/*    <div>*/}
+            {/*        <Sparkles className="h-6 w-6 text-primary animate-pulse" />*/}
+            {/*        <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">*/}
+            {/*            Recommended Classes*/}
+            {/*        </h1>*/}
+            {/*        <p className="text-muted-foreground text-sm mt-1">*/}
+            {/*            Consider these classes, popular with students matching your academic profile*/}
+            {/*        </p>*/}
+            {/*    </div>*/}
+            {/*    <div className="text-xs font-medium text-muted-foreground bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/40 self-start md:self-auto">*/}
+            {/*        Top {recommendations.length} Matches Found*/}
+            {/*    </div>*/}
+            {/*</div>*/}
+
+            {/*{recommendations.length === 0 ? (*/}
+            {/*    <div className="text-center py-20 text-muted-foreground border border-dashed border-slate-200 rounded-xl bg-slate-50/50">*/}
+            {/*        No recommended classes available for your account yet. Try signing up for some classes to create an academic profile*/}
+            {/*    </div>*/}
+            {/*) : (*/}
+            {/*    <RecommendationsVisualGrid data={recommendations} />*/}
+            {/*)}*/}
+
+        </ListView>
     );
 };
 

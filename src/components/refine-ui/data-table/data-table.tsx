@@ -21,11 +21,15 @@ import { cn } from "@/lib/utils";
 type DataTableProps<TData extends BaseRecord> = {
   table: UseTableReturnType<TData, HttpError>;
   paginationVariant?: "default" | "simple";
+  emptyTitle?: string;
+  emptyDescription?: string;
 };
 
 export function DataTable<TData extends BaseRecord>({
   table,
   paginationVariant = "default",
+  emptyTitle = "No data to display",
+  emptyDescription = "This table is empty for the time being.",
 }: DataTableProps<TData>) {
   const {
     reactTable: { getHeaderGroups, getRowModel, getAllColumns },
@@ -195,6 +199,8 @@ export function DataTable<TData extends BaseRecord>({
               <DataTableNoData
                 isOverflowing={isOverflowing}
                 columnsLength={columns.length}
+                emptyTitle={emptyTitle}
+                emptyDescription={emptyDescription}
               />
             )}
           </TableBody>
@@ -218,9 +224,13 @@ export function DataTable<TData extends BaseRecord>({
 function DataTableNoData({
   isOverflowing,
   columnsLength,
+  emptyTitle,
+  emptyDescription,
 }: {
   isOverflowing: { horizontal: boolean; vertical: boolean };
   columnsLength: number;
+  emptyTitle: string;
+  emptyDescription: string;
 }) {
   return (
     <TableRow className="hover:bg-transparent">
@@ -250,10 +260,10 @@ function DataTableNoData({
           }}
         >
           <div className={cn("text-lg", "font-semibold", "text-foreground")}>
-            No data to display
+            {emptyTitle}
           </div>
           <div className={cn("text-sm", "text-muted-foreground")}>
-            This table is empty for the time being.
+            {emptyDescription}
           </div>
         </div>
       </TableCell>

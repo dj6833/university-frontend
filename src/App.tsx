@@ -44,7 +44,7 @@ import EnrolmentList from "@/pages/enrollments/list.tsx";
 import EnrollmentsCreate from "./pages/enrollments/create";
 import EnrollmentsJoin from "./pages/enrollments/join";
 import EnrollmentConfirm from "./pages/enrollments/confirm";
-import RecommendedClassList from "@/pages/enrollments/recommendations.tsx";
+import RecommendedClassList from "@/pages/classes/recommendations.tsx";
 
 /*
 Globally force all browser fetch requests to include cookies, ensuring our session cookie is passed
@@ -255,7 +255,7 @@ function App() {
                 {
                   name: "enrollments",
                   list: "/enrollments",
-                  create: "/enrollments/create",
+                  // create: "/enrollments/create",
                   meta: {
                     label: "My Classes",
                     icon: <ClipboardCheck />,
@@ -269,6 +269,15 @@ function App() {
                   meta: {
                     label: "All Classes",
                     icon: <GraduationCap />,
+                  },
+                },
+                {
+                  name: "class-recommendations",
+                  list: "/classes/recommendations", // Keep your working file path URL intact
+                  meta: {
+                    label: "Recommended for You",
+                    parent: "classes", // 🔗 Natively links it under the 'All Classes' breadcrumb group [INDEX]!
+                    hide: true,        // Hides it from clogging your left sidebar menu list [INDEX]
                   },
                 },
               ]}
@@ -330,13 +339,14 @@ function App() {
                     <Route path="create" element={<EnrollmentsCreate />} />
                     <Route path="join" element={<EnrollmentsJoin />} />
                     <Route path="confirm" element={<EnrollmentConfirm />} />
-                    <Route path="recommendations" element={<RecommendedClassList />} />
+                    {/*<Route path="recommendations" element={<RecommendedClassList />} />*/}
                   </Route>
 
                   <Route path="classes">
                     <Route index element={<ClassesList />} />
                     <Route path="create" element={<ClassesCreate />} />
                     <Route path="show/:id" element={<ClassesShow />} />
+                    <Route path="recommendations" element={<RecommendedClassList />} />
                   </Route>
                 </Route>
               </Routes>
