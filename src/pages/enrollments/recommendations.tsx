@@ -47,6 +47,7 @@ interface RecommendationItem {
     name: string;
     classId: string;
     status: string;
+    description: string;
     match_strength: number;
     bannerUrl?: string;
     subject?: { name: string; code: string };
@@ -110,6 +111,10 @@ export const RecommendationsVisualGrid = ({ data }: { data: RecommendationItem[]
                                     {item.name || "Unassigned Class Name"}
                                 </h3>
 
+                                <p className="mt-1 text-xs font-normal text-slate-500 leading-relaxed line-clamp-2">
+                                    {item.description}
+                                </p>
+
                                 <div className="mt-4 flex items-center gap-2 text-xs text-slate-600">
                                     {/*<User className="h-3.5 w-3.5 text-slate-400 shrink-0" />*/}
                                     <Avatar className="size-7">
@@ -144,9 +149,15 @@ export const RecommendationsVisualGrid = ({ data }: { data: RecommendationItem[]
                                         recordItemId={item.id}
                                         variant="outline"
                                         size="sm"
+                                        className="h-8 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
                                     >
                                         View Class
                                     </ShowButton>
+
+                                    {/*/!*<Button size="lg" className="w-full">*!/*/}
+                                    {/*<Button size="sm" className="h-8 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90">*/}
+                                    {/*    View Class*/}
+                                    {/*</Button>*/}
 
                                     {/*<Button*/}
                                     {/*    size="sm"*/}
@@ -216,8 +227,8 @@ export const RecommendedClassList = () => {
     if (isError) {
         return (
             <div className="p-6 max-w-7xl mx-auto text-center py-20">
-                <p className="text-destructive font-medium">Failed to calculate curriculum tracks.</p>
-                <p className="text-xs text-muted-foreground mt-1">Please check your Node.js console logs or backend connection.</p>
+                <p className="text-destructive font-medium">Could not load your recommendations.</p>
+                <p className="text-xs text-muted-foreground mt-1">Please try again later or contact your site admin</p>
             </div>
         );
     }
@@ -227,8 +238,8 @@ export const RecommendedClassList = () => {
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
                 <div>
+                    <Sparkles className="h-6 w-6 text-primary animate-pulse" />
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-                        <Sparkles className="h-6 w-6 text-primary animate-pulse" />
                         Recommended Classes
                     </h1>
                     <p className="text-muted-foreground text-sm mt-1">
