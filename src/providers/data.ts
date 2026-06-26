@@ -1,6 +1,6 @@
 import {createDataProvider, CreateDataProviderOptions} from "@refinedev/rest";
 
-import { CreateResponse, GetOneResponse, ListResponse } from "@/types";
+import {CreateResponse, DeleteResponse, GetOneResponse, ListResponse} from "@/types";
 import {BACKEND_BASE_URL} from "@/constants";
 import { HttpError } from "@refinedev/core";
 
@@ -69,6 +69,10 @@ const options: CreateDataProviderOptions = {
           if (field === "subject") params.subject = value;
           if (field === "teacher") params.teacher = value;
         }
+
+        if (resource === "enrollments") {
+          if (field === "name") params.search = value;
+        }
       });
 
       return params;
@@ -109,6 +113,27 @@ const options: CreateDataProviderOptions = {
       return json.data ?? {};
     },
   },
+
+  deleteOne: {
+    getEndpoint: ({resource, id}) => `${resource}/${id}`,
+    mapResponse: async (response) => {
+      await checkResponseError(response);
+      const json: DeleteResponse = await response.json();
+      return json.data ?? {};
+    },
+  },
+
+  custom: {
+
+    mapResponse: async (response) => {
+      await checkResponseError(response);
+      const json = await response.json() as { data?: any };
+      return {
+        data: json.data ?? {},
+      };
+    },
+  },
+  
 };
 
 const { dataProvider } = createDataProvider(BACKEND_BASE_URL, options);

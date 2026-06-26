@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { useShow } from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
 import { ColumnDef } from "@tanstack/react-table";
@@ -15,6 +17,7 @@ import {
   ShowViewHeader,
 } from "@/components/refine-ui/views/show-view";
 import type { Department } from "@/types";
+import {getInitials} from "@/lib/utils.ts";
 
 type DepartmentDetails = {
   department: Department;
@@ -60,6 +63,7 @@ type DepartmentUser = {
 };
 
 const DepartmentShow = () => {
+  useDocumentTitle(`Department Details ${APP_TITLE_SUFFIX}`);
   const { id } = useParams();
   const departmentId = id ?? "";
 
@@ -434,15 +438,6 @@ const DepartmentShow = () => {
       </div>
     </ShowView>
   );
-};
-
-const getInitials = (name = "") => {
-  const parts = name.trim().split(" ").filter(Boolean);
-  if (parts.length === 0) return "";
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "";
-  return `${parts[0][0] ?? ""}${
-    parts[parts.length - 1][0] ?? ""
-  }`.toUpperCase();
 };
 
 export default DepartmentShow;

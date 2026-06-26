@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "@refinedev/react-hook-form";
 import { useBack, useList, type BaseRecord, type HttpError } from "@refinedev/core";
@@ -44,6 +46,7 @@ const subjectCreateSchema = z.object({
 type SubjectFormValues = z.infer<typeof subjectCreateSchema>;
 
 const SubjectsCreate = () => {
+  useDocumentTitle(`Create a Subject ${APP_TITLE_SUFFIX}`);
   const back = useBack();
 
   const form = useForm<BaseRecord, HttpError, SubjectFormValues>({

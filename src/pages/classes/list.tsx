@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import {Search} from "lucide-react";
 import {useMemo, useState} from "react";
 import { ColumnDef } from "@tanstack/react-table";
@@ -36,7 +38,8 @@ type ClassListItem = {
 };
 
 const ClassesList = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+    useDocumentTitle(`Classes ${APP_TITLE_SUFFIX}`);
+    const [searchQuery, setSearchQuery] = useState("");
     const [selectedSubject, setSelectedSubject] = useState<string>("all");
     const [selectedTeacher, setSelectedTeacher] = useState<string>("all");
 
@@ -45,8 +48,8 @@ const ClassesList = () => {
             {
         id: "banner",
                 accessorKey: "bannerUrl",
-        size: 120,
-                header: () => <p className="column-title ml-2">Banner</p>,
+        size: 60,
+                header: () => <p className="column-title ml-2"></p>,
         cell: ({ getValue }) => {
           const bannerUrl = getValue<string>();
 

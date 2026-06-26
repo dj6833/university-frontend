@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "@refinedev/react-hook-form";
 import { useBack, type BaseRecord, type HttpError } from "@refinedev/core";
@@ -30,6 +32,7 @@ const departmentSchema = z.object({
 type DepartmentFormValues = z.infer<typeof departmentSchema>;
 
 const DepartmentsCreate = () => {
+  useDocumentTitle(`Create a Department ${APP_TITLE_SUFFIX}`);
   const back = useBack();
 
   const form = useForm<BaseRecord, HttpError, DepartmentFormValues>({

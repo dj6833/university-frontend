@@ -66,6 +66,8 @@ export const CLOUDINARY_UPLOAD_URL = getEnvVar("VITE_CLOUDINARY_UPLOAD_URL");
 export const CLOUDINARY_CLOUD_NAME = getEnvVar("VITE_CLOUDINARY_CLOUD_NAME");
 export const BACKEND_BASE_URL = getEnvVar("VITE_BACKEND_BASE_URL");
 
+
+export const APP_TITLE_SUFFIX = import.meta.env.VITE_APP_TITLE_SUFFIX;
 export const BASE_URL = import.meta.env.VITE_API_URL;
 export const ACCESS_TOKEN_KEY = import.meta.env.VITE_ACCESS_TOKEN_KEY;
 export const REFRESH_TOKEN_KEY = import.meta.env.VITE_REFRESH_TOKEN_KEY;

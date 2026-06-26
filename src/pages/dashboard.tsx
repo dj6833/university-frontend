@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { useMemo } from "react";
 import { useLink, useList } from "@refinedev/core";
 import {
@@ -40,6 +42,7 @@ type ClassListItem = {
 const roleColors = ["#f97316", "#0ea5e9", "#22c55e", "#a855f7"];
 
 const Dashboard = () => {
+  useDocumentTitle(`Dashboard ${APP_TITLE_SUFFIX}`);
   const Link = useLink();
   const { query: usersQuery } = useList<User>({
     resource: "users",
@@ -258,7 +261,7 @@ const Dashboard = () => {
                         roleColors[index % roleColors.length],
                     }}
                   />
-                  {entry.role} · {entry.total}
+                  {entry.role} Â· {entry.total}
                 </span>
               ))}
             </div>
@@ -366,7 +369,7 @@ const Dashboard = () => {
                   <div>
                     <p className="text-sm font-medium">{item.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {item.subject?.name ?? "No subject"} ·{" "}
+                      {item.subject?.name ?? "No subject"} Â·{" "}
                       {item.teacher?.name ?? "No teacher"}
                     </p>
                   </div>

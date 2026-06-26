@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import {Search} from "lucide-react";
 import {useMemo, useState} from "react";
 import {useTable} from "@refinedev/react-table";
@@ -22,6 +24,7 @@ import { Subject } from "@/types";
 import { DEPARTMENT_OPTIONS } from "@/constants";
 
 const SubjectListPage = () => {
+  useDocumentTitle(`Subjects ${APP_TITLE_SUFFIX}`);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
 

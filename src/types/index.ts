@@ -21,6 +21,10 @@ export type CreateResponse<T = unknown> = {
     data?: T;
 };
 
+export type DeleteResponse<T = unknown> = {
+    data?: T;
+};
+
 export type GetOneResponse<T = unknown> = {
     data?: T;
 };

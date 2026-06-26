@@ -1,13 +1,15 @@
-import { Authenticated, Refine } from "@refinedev/core";
+import { Authenticated, Refine  } from "@refinedev/core";
 import { DevtoolsProvider } from "@refinedev/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
+
+import { useEffect } from "react";
 
 import routerProvider, {
   DocumentTitleHandler,
   NavigateToResource,
   UnsavedChangesNotifier
 } from "@refinedev/react-router";
-import {BrowserRouter, Navigate, Outlet, Route, Routes} from "react-router";
+import {BrowserRouter, Navigate, Outlet, Route, Routes, useLocation} from "react-router";
 import "./App.css";
 import { Toaster } from "./components/refine-ui/notification/toaster";
 import { useNotificationProvider } from "./components/refine-ui/notification/use-notification-provider";
@@ -38,14 +40,15 @@ import DepartmentsCreate from "./pages/departments/create";
 import DepartmentShow from "./pages/departments/show";
 import FacultyList from "./pages/faculty/list";
 import FacultyShow from "./pages/faculty/show";
+import EnrolmentList from "@/pages/enrollments/list.tsx";
 import EnrollmentsCreate from "./pages/enrollments/create";
 import EnrollmentsJoin from "./pages/enrollments/join";
 import EnrollmentConfirm from "./pages/enrollments/confirm";
+import RecommendedClassList from "@/pages/classes/recommendations.tsx";
 
 /*
 Globally force all browser fetch requests to include cookies, ensuring our session cookie is passed
 */
-
 const originalFetch = window.fetch;
 window.fetch = async (input, init) => {
   // Force the Better Auth credentials on ALL outbound requests
@@ -55,9 +58,90 @@ window.fetch = async (input, init) => {
   });
 };
 
+//works but uses url to determine page name, not always accurate - will attempt overriding in individual pages if necessary
+// const PageTitleUpdater = () => {
+//   const location = useLocation(); // Safely listens to the browser address URL string changing
+//
+//   useEffect(() => {
+//     const siteName = "University of Oakfield";
+//
+//     // Extract the primary path segments (e.g., "/enrollments/recommendations" -> ["enrollments", "recommendations"])
+//     const pathSegments = location.pathname.split("/").filter(Boolean);
+//
+//     if (pathSegments.length > 0) {
+//       // Capitalise the primary module token word cleanly (e.g., 'enrollments' -> 'Enrollments')
+//       const mainModule = pathSegments[0].charAt(0).toUpperCase() + pathSegments[0].slice(1);
+//
+//       // If there's a sub-action page layout (like 'recommendations' or 'show'), map it as a subtitle suffix
+//       let subAction = "";
+//       if (pathSegments[1]) {
+//         subAction = ` | ${pathSegments[1].charAt(0).toUpperCase() + pathSegments[1].slice(1)}`;
+//       }
+//
+//       // Sets the raw Chrome browser tab window string natively!
+//       document.title = `${mainModule}${subAction} - ${siteName}`;
+//     } else {
+//       // Fallback text if the student lands on the root dashboard index directory path
+//       document.title = siteName;
+//     }
+//   }, [location]);
+//
+//   return null; // This is a passive utility wrapper; it renders nothing on your UI screen
+// };
+
+//works but flickers first "refine" before using h1
+// const PageTitleUpdater = () => {
+//   const location = useLocation();
+//
+//   useEffect(() => {
+//     const siteName = "University of Oakfield";
+//
+//     // 🌟 A small 50ms buffer ensures React has finished mounting your page text first
+//     const timeoutId = setTimeout(() => {
+//       // Direct query selector scans the active viewport for your page header
+//       const pageHeader = document.querySelector("h1");
+//
+//       if (pageHeader && pageHeader.textContent) {
+//         // Automatically grabs "My Classes" or "Recommended Classes" exactly as rendered!
+//         document.title = `${pageHeader.textContent.trim()} | ${siteName}`;
+//       } else {
+//         // Safe structural fallback if a custom page has no h1 layout element
+//         document.title = siteName;
+//       }
+//     }, 50);
+//
+//     return () => clearTimeout(timeoutId);
+//   }, [location]); // Safely re-runs the scanner every single time your URL route updates
+//
+//   return null;
+// };
+
+// const CustomTitle = ({ collapsed }: { collapsed: boolean }) => (
+//     <div className="flex items-center gap-2 px-2 py-1 font-bold text-slate-800">
+//       <GraduationCap className="h-6 w-6 text-indigo-600 flex-shrink-0" />
+//       {!collapsed && <span className="text-base tracking-tight">University of Oakfield</span>}
+//     </div>
+// );
+
+// const PortalTitle = ({ collapsed }: { collapsed: boolean }) => (
+//     <div className="flex items-center gap-2 px-1 py-2 font-bold text-slate-900 select-none">
+//       {/* 🌟 THE LOGO IMAGE: Remains completely locked in place on collapse */}
+//       <img
+//           src="/logo.png"
+//           alt="Logo"
+//           className="h-6 w-6 object-contain flex-shrink-0"
+//       />
+//
+//       {/* 🌟 THE WORKSPACE STRING TEXT: Gracefully fades away only when collapsed */}
+//       {!collapsed && <span className="text-base tracking-tight">AcademyPortal</span>}
+//     </div>
+// );
+
 function App() {
+  const schoolName = "University of Oakfield";
   return (
     <BrowserRouter>
+      {/*<PageTitleUpdater />*/}
       <RefineKbarProvider>
         <ThemeProvider>
           <DevtoolsProvider>
@@ -66,7 +150,47 @@ function App() {
               authProvider={authProvider}
               notificationProvider={useNotificationProvider()}
               routerProvider={routerProvider}
+              // DocumentTitleHandler={({ resource, action }) => {
+              //   const siteName = "University of Oakfield";
+              //
+              //   if (resource) {
+              //     // Capitalises page resource names cleanly (e.g. 'enrollments' -> 'Enrollments')
+              //     const pageName = resource.charAt(0).toUpperCase() + resource.slice(1);
+              //
+              //     // Maps actions cleanly if needed (e.g. show -> Details)
+              //     const actionLabel = action && action !== "list" ? ` | ${action}` : "";
+              //
+              //     return `${pageName}${actionLabel} - ${siteName}`;
+              //   }
+              //
+              //   return siteName;
+              // }}
+
+              // i18nProvider={{
+              //   translate: (key: string, defaultMessage?: string) => {
+              //     // Intercept the default browser suffix rule and force your school name natively!
+              //     if (key === "documentTitle.suffix") return ` | ${schoolName}`;
+              //     if (key === "documentTitle.default") return schoolName;
+              //
+              //     // Fall back to standard defaults for any other internal framework layout text keys
+              //     return defaultMessage || key;
+              //   },
+              //   changeLocale: async () => {},
+              //   getLocale: () => "en",
+              // }}
+
               options={{
+                title: {
+                  text: "University of Oakfield",
+                  //icon: <GraduationCap className="h-6 w-6 text-indigo-600" />,
+                  icon: (
+                      <img
+                          src="/logo.png"
+                          alt="Logo"
+                          className="h-6 w-6 min-w-[24px] min-h-[24px] object-contain flex-shrink-0"
+                      />
+                  ),
+                },
                 syncWithLocation: true,
                 warnWhenUnsavedChanges: true,
                 projectId: "mG476x-8Tj0nI-6mS6lr",
@@ -89,6 +213,7 @@ function App() {
                   },
                 },
               }}
+              //applicationName: "University of Oakfield"
               resources={[
                   {
                   name: "dashboard",
@@ -123,16 +248,16 @@ function App() {
                   list: "/faculty",
                   show: "/faculty/show/:id",
                   meta: {
-                    label: "Faculty",
+                    label: "Staff",
                     icon: <Users />,
                   },
                 },
                 {
                   name: "enrollments",
-                  list: "/enrollments/create",
-                  create: "/enrollments/create",
+                  list: "/enrollments",
+                  // create: "/enrollments/create",
                   meta: {
-                    label: "Enrolments",
+                    label: "My Classes",
                     icon: <ClipboardCheck />,
                   },
                 },
@@ -142,8 +267,17 @@ function App() {
                   create: "/classes/create",
                   show: "/classes/show/:id",
                   meta: {
-                    label: "Classes",
+                    label: "All Classes",
                     icon: <GraduationCap />,
+                  },
+                },
+                {
+                  name: "class-recommendations",
+                  list: "/classes/recommendations", // Keep your working file path URL intact
+                  meta: {
+                    label: "Recommended for You",
+                    parent: "classes", // 🔗 Natively links it under the 'All Classes' breadcrumb group [INDEX]!
+                    hide: true,        // Hides it from clogging your left sidebar menu list [INDEX]
                   },
                 },
               ]}
@@ -201,15 +335,18 @@ function App() {
                   </Route>
 
                   <Route path="enrollments">
+                    <Route index element={<EnrolmentList />} />
                     <Route path="create" element={<EnrollmentsCreate />} />
                     <Route path="join" element={<EnrollmentsJoin />} />
                     <Route path="confirm" element={<EnrollmentConfirm />} />
+                    {/*<Route path="recommendations" element={<RecommendedClassList />} />*/}
                   </Route>
 
                   <Route path="classes">
                     <Route index element={<ClassesList />} />
                     <Route path="create" element={<ClassesCreate />} />
                     <Route path="show/:id" element={<ClassesShow />} />
+                    <Route path="recommendations" element={<RecommendedClassList />} />
                   </Route>
                 </Route>
               </Routes>
@@ -217,7 +354,19 @@ function App() {
               <Toaster />
               <RefineKbar />
               <UnsavedChangesNotifier />
-              <DocumentTitleHandler />
+              {/*<DocumentTitleHandler />*/}
+              {/*<DocumentTitleHandler*/}
+              {/*    handler={({ resource, action }) => {*/}
+              {/*      if (resource) {*/}
+              {/*        // Capitalises the resource name cleanly (e.g., 'subjects' -> 'Subjects')*/}
+              {/*        const pageLabel = resource.toString().charAt(0).toUpperCase() + resource.toString().slice(1);*/}
+              {/*        const subAction = action && action !== "list" ? ` | ${action}` : "";*/}
+
+              {/*        return `${pageLabel}${subAction} - ${schoolName}`;*/}
+              {/*      }*/}
+              {/*      return schoolName;*/}
+              {/*    }}*/}
+              {/*/>*/}
             </Refine>
           </DevtoolsProvider>
         </ThemeProvider>

@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
@@ -12,8 +14,10 @@ import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
 import { DataTable } from "@/components/refine-ui/data-table/data-table";
 import { ShowButton } from "@/components/refine-ui/buttons/show";
 import type { User } from "@/types";
+import {getInitials} from "@/lib/utils.ts";
 
 const FacultyList = () => {
+  useDocumentTitle(`Staff ${APP_TITLE_SUFFIX}`);
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(
     searchParams.get("search") ?? ""
@@ -117,10 +121,10 @@ const FacultyList = () => {
   return (
     <ListView>
       <Breadcrumb />
-      <h1 className="page-title">Faculty</h1>
+      <h1 className="page-title">Staff</h1>
 
       <div className="intro-row">
-        <p>Browse and manage faculty members.</p>
+        <p>Browse and manage staff members.</p>
 
         <div className="actions-row">
           <div className="search-field">
@@ -139,13 +143,6 @@ const FacultyList = () => {
       <DataTable table={facultyTable} />
     </ListView>
   );
-};
-
-const getInitials = (name = "") => {
-  const parts = name.trim().split(" ");
-  if (parts.length === 0) return "";
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "";
-  return `${parts[0][0] ?? ""}${parts[parts.length - 1][0] ?? ""}`.toUpperCase();
 };
 
 export default FacultyList;

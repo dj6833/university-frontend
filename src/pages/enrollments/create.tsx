@@ -1,3 +1,8 @@
+/*
+page not linked to in app, likely will be removed once user can join classes through a better method
+ */
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -25,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { ClassDetails, User } from "@/types";
+import {ClassDetails, User} from "@/types";
 
 const enrollSchema = z.object({
   classId: z.coerce.number().min(1, "Class is required"),
@@ -34,6 +39,7 @@ const enrollSchema = z.object({
 type EnrollFormValues = z.infer<typeof enrollSchema>;
 
 const EnrollmentsCreate = () => {
+  useDocumentTitle(`Enrol in a Class ${APP_TITLE_SUFFIX}`);
   const navigate = useNavigate();
   const {
     mutateAsync: createEnrollment,
@@ -164,6 +170,7 @@ const EnrollmentsCreate = () => {
           </CardContent>
         </Card>
       </div>
+
     </CreateView>
   );
 };

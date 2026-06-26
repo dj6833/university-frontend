@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import {cn, getInitials} from "@/lib/utils";
 import { useGetIdentity } from "@refinedev/core";
 import type { User } from "@/types";
 
@@ -21,15 +21,5 @@ export function UserAvatar() {
     </Avatar>
   );
 }
-
-const getInitials = (name = "") => {
-  const names = name.split(" ");
-  let initials = names[0].substring(0, 1).toUpperCase();
-
-  if (names.length > 1) {
-    initials += names[names.length - 1].substring(0, 1).toUpperCase();
-  }
-  return initials;
-};
 
 UserAvatar.displayName = "UserAvatar";

@@ -1,3 +1,5 @@
+import { useDocumentTitle } from "@refinedev/react-router";
+import {APP_TITLE_SUFFIX} from "@/constants";
 import { AdvancedImage } from "@cloudinary/react";
 import {useShow} from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
@@ -18,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { bannerPhoto } from "@/lib/cloudinary";
 import {ClassDetails} from "@/types";
+import {getInitials} from "@/lib/utils.ts";
 
 type ClassUser = {
   id: string;
@@ -28,6 +31,7 @@ type ClassUser = {
 };
 
 const ClassesShow = () => {
+  useDocumentTitle(`Class Details ${APP_TITLE_SUFFIX}`);
   const { id } = useParams();
   const classId = id ?? "";
 
@@ -220,15 +224,14 @@ const ClassesShow = () => {
 
         <Separator />
 
-        {/* Join Class Section */}
-                    <div className="join">
-          <h2>🎓 Join Class</h2>
+                <div className="join">
+                  <h2>🎓 Join Class</h2>
 
-                        <ol>
-            <li>Ask your teacher for the invite code.</li>
-            <li>Click on &quot;Join Class&quot; button.</li>
-            <li>Paste the code and click &quot;Join&quot;</li>
-                        </ol>
+                                <ol>
+                    <li>Ask your teacher for the invite code.</li>
+                    <li>Click on &quot;Join Class&quot; button.</li>
+                    <li>Paste the code and click &quot;Join&quot;</li>
+                                </ol>
                 </div>
 
         <Button size="lg" className="w-full">
@@ -246,15 +249,6 @@ const ClassesShow = () => {
             </Card>
         </ShowView>
   );
-};
-
-const getInitials = (name = "") => {
-  const parts = name.trim().split(" ").filter(Boolean);
-  if (parts.length === 0) return "";
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "";
-  return `${parts[0][0] ?? ""}${
-    parts[parts.length - 1][0] ?? ""
-  }`.toUpperCase();
 };
 
 export default ClassesShow;
