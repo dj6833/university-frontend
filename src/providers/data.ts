@@ -124,56 +124,16 @@ const options: CreateDataProviderOptions = {
   },
 
   custom: {
-    // Refine passes the final URL string directly to the custom method.
-    // custom method so far only used by enrolment-recommendations
-    // buildQueryParams - disabled for now, but enable & test below code if future components require this
-
-    // buildQueryParams: async ({ filters }) => {
-    //   const params: Record<string, string | number> = {};
-    //
-    //   filters?.forEach((filter) => {
-    //     const field = "field" in filter ? filter.field : "";
-    //     const value = String(filter.value);
-    //     if (field === "req_max_records") params.req_max_records = value;
-    //   });
-    //
-    //   return params;
-    // },
 
     mapResponse: async (response) => {
       await checkResponseError(response);
       const json = await response.json() as { data?: any };
-
-      // Symmetrically returns the data property expected by Refine hooks
       return {
         data: json.data ?? {},
       };
     },
   },
-
-
-  // custom: async ({ url, method, payload, headers }) => {
-  //   // Direct fetch execution bypassing filter parsing loops
-  //   const response = await fetch(url, {
-  //     method: method.toUpperCase(),
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       ...headers,
-  //     },
-  //     // Only pass body strings on payload-driven requests (like POST or PUT)
-  //     body: payload ? JSON.stringify(payload) : undefined,
-  //   });
-  //
-  //   if (!response.ok) {
-  //     throw new Error(`Custom request failed with status: ${response.status}`);
-  //   }
-  //
-  //   const json = await response.json();
-  //
-  //   return {
-  //     data: json.data,
-  //   };
-  //},
+  
 };
 
 const { dataProvider } = createDataProvider(BACKEND_BASE_URL, options);

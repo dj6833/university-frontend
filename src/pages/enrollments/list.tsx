@@ -9,7 +9,6 @@ import {
     ArrowRight,
     X
 } from "lucide-react";
-import { useMenu, useNavigation } from "@refinedev/core";
 import { useMemo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { useTable } from "@refinedev/react-table";
@@ -185,7 +184,6 @@ export function RowActionsCell({ enrollment }: any) {
     const [open, setOpen] = useState(false);
     const isMobile = useIsMobile();
 
-    // Clean inline list rendering that propagates standard mouse clicks flawlessly
     const MenuItems = () => (
         <>
             <ShowButton

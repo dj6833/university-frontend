@@ -261,7 +261,7 @@ const Dashboard = () => {
                         roleColors[index % roleColors.length],
                     }}
                   />
-                  {entry.role} � {entry.total}
+                  {entry.role} · {entry.total}
                 </span>
               ))}
             </div>
@@ -369,7 +369,7 @@ const Dashboard = () => {
                   <div>
                     <p className="text-sm font-medium">{item.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {item.subject?.name ?? "No subject"} �{" "}
+                      {item.subject?.name ?? "No subject"} ·{" "}
                       {item.teacher?.name ?? "No teacher"}
                     </p>
                   </div>

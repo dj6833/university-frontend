@@ -224,15 +224,14 @@ const ClassesShow = () => {
 
         <Separator />
 
-        {/* Join Class Section */}
-                    <div className="join">
-          <h2>🎓 Join Class</h2>
+                <div className="join">
+                  <h2>🎓 Join Class</h2>
 
-                        <ol>
-            <li>Ask your teacher for the invite code.</li>
-            <li>Click on &quot;Join Class&quot; button.</li>
-            <li>Paste the code and click &quot;Join&quot;</li>
-                        </ol>
+                                <ol>
+                    <li>Ask your teacher for the invite code.</li>
+                    <li>Click on &quot;Join Class&quot; button.</li>
+                    <li>Paste the code and click &quot;Join&quot;</li>
+                                </ol>
                 </div>
 
         <Button size="lg" className="w-full">
@@ -251,14 +250,5 @@ const ClassesShow = () => {
         </ShowView>
   );
 };
-
-// const getInitials = (name = "") => {
-//   const parts = name.trim().split(" ").filter(Boolean);
-//   if (parts.length === 0) return "";
-//   if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? "";
-//   return `${parts[0][0] ?? ""}${
-//     parts[parts.length - 1][0] ?? ""
-//   }`.toUpperCase();
-// };
 
 export default ClassesShow;
