@@ -119,19 +119,7 @@ const ClassesList = () => {
           );
         },
             },
-        //     {
-        //         id: "capacity",
-        //         accessorKey: "capacity",
-        // size: 120,
-        //         header: () => <p className="column-title">Capacity</p>,
-        // cell: ({ getValue }) => {
-        //   const capacity = getValue<number>();
-        //
-        //   return <span className="text-foreground">{capacity}</span>;
-        // },
-        //     },
-
-            //availability displayed as "33 / 33 spaces" available
+            //displays availability as "33 / 33 spaces" available
             // {
             //     id: "availability",
             //     // We bind the baseline key tracker to the numeric spacesLeft parameter
@@ -139,14 +127,9 @@ const ClassesList = () => {
             //     size: 200,
             //     header: () => <p className="column-title">Availability</p>,
             //     cell: ({ row }) => {
-            //         // 🌟 THE MERGE: Access the entire active row record values dynamically
             //         const record = row.original;
-            //
-            //         // Safety guard clamp ensures oversubscribed metrics never display negative text
             //         const displaySpacesLeft = Math.max(0, record.spacesLeft ?? 0);
             //         const isFull = (record.spacesLeft ?? 0) <= 0;
-            //
-            //         // Evaluate if the course capacity tracking remains below the critical 20% limit
             //         const percentRemaining = (displaySpacesLeft / (record.capacity ?? 1)) * 100;
             //         const isAlmostFull = percentRemaining < CLASS_CAPACITY_CONFIG.ALMOST_FULL_PERCENTAGE && !isFull;
             //
@@ -171,23 +154,16 @@ const ClassesList = () => {
                 header: () => <p className="column-title">Availability</p>,
                 cell: ({ row }) => {
                     const record = row.original;
-
-                    // Safety guard clamp ensures oversubscribed metrics never display negative numbers
                     const displaySpacesLeft = Math.max(0, record.spacesLeft ?? 0);
                     const capacity = record.capacity ?? 1;
                     const seatsUsed = capacity - displaySpacesLeft;
                     const isFull = (record.spacesLeft ?? 0) <= 0;
-
-                    // Evaluate if capacity falls below the critical 20% limit
                     const percentRemaining = (displaySpacesLeft / capacity) * 100;
                     const isAlmostFull = percentRemaining < CLASS_CAPACITY_CONFIG.ALMOST_FULL_PERCENTAGE && !isFull;
-
-                    // Calculate the fill percentage for the progress track line
                     const fillPercent = Math.min((seatsUsed / capacity) * 100, 100);
 
                     return (
                         <div className="flex flex-col justify-center space-y-1.5 w-full max-w-[150px] py-1">
-                            {/* Row 1: Compact, scannable text metadata indicators */}
                             <div className="flex items-center justify-between text-[11px] font-medium leading-none">
                               <span className={
                                   isFull
@@ -198,17 +174,13 @@ const ClassesList = () => {
                               }>
                                 {isFull ? "Full" : isAlmostFull ? "Almost Full" : "Available"}
                               </span>
-
-                                {/* Subtle text overlay showing the raw ratio context */}
                                 <span className="text-slate-400 font-mono text-[10px]">
                                     {displaySpacesLeft}/{capacity}
                                   </span>
                             </div>
-
-                            {/* Row 2: Visual Progress Tracker Line Bar */}
                             <div
                                 className="h-2 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200/20"
-                                title={`${displaySpacesLeft} out of ${capacity} spaces remaining`} // Browser fallback tooltip on hover
+                                title={`${displaySpacesLeft} out of ${capacity} spaces remaining`}
                             >
                                 <div
                                     className={`h-full transition-all duration-500 rounded-full ${

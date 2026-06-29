@@ -108,11 +108,9 @@ export const RecommendationsVisualGrid = ({ data }: { data: RecommendationItem[]
                                     </Avatar>
 
                                     <div className="flex flex-col min-w-0 leading-tight">
-                                        {/* UK University Rank Marker */}
                                         <span className="text-[9px] font-bold tracking-widest text-muted-foreground uppercase mb-0.5">
                                           Lecturer
                                         </span>
-                                        {/* Teacher Name Row */}
                                         <span className="text-xs font-semibold text-slate-800 truncate">
                                           {item.teacher?.name || "Teacher Unassigned"}
                                         </span>
