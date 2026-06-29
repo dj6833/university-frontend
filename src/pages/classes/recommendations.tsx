@@ -1,5 +1,5 @@
 import { useDocumentTitle } from "@refinedev/react-router";
-import {APP_TITLE_SUFFIX} from "@/constants";
+import {APP_TITLE_SUFFIX, CLASS_CAPACITY_CONFIG} from "@/constants";
 import { Badge } from "@/components/ui/badge.tsx";
 import { ListView, ListViewHeader} from "@/components/refine-ui/views/list-view.tsx";
 import { ShowButton } from "@/components/refine-ui/buttons/show.tsx";
@@ -48,7 +48,7 @@ export const RecommendationsVisualGrid = ({ data }: { data: RecommendationItem[]
                     const seatsUsed = item.capacity - item.spacesLeft;
 
                     const percentRemaining = (item.spacesLeft / item.capacity) * 100;
-                    const isAlmostFull = percentRemaining < 20 && !isFull;
+                    const isAlmostFull = percentRemaining < CLASS_CAPACITY_CONFIG.ALMOST_FULL_PERCENTAGE && !isFull;
 
                     return (
                         <div
@@ -124,8 +124,8 @@ export const RecommendationsVisualGrid = ({ data }: { data: RecommendationItem[]
                                         <span className={`font-semibold ${
                                             isFull ? "text-rose-600 font-bold" : isAlmostFull ? "text-amber-600 font-semibold" : "text-slate-700"
                                         }`}>
-                        {isFull ? "0 spaces left" : `${item.spacesLeft} / ${item.capacity} remaining`}
-                    </span>
+                                        {isFull ? "0 spaces left" : `${item.spacesLeft} / ${item.capacity} remaining`}
+                                        </span>
                                     </div>
                                     <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                                         <div

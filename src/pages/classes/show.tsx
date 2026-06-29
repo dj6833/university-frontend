@@ -1,5 +1,5 @@
 import { useDocumentTitle } from "@refinedev/react-router";
-import {APP_TITLE_SUFFIX} from "@/constants";
+import {APP_TITLE_SUFFIX, CLASS_CAPACITY_CONFIG} from "@/constants";
 import { AdvancedImage } from "@cloudinary/react";
 import {useShow} from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
@@ -132,8 +132,9 @@ const ClassesShow = () => {
   )}`;
 
   const isFull = classDetails.spacesLeft <= 0;
-  const percentRemaining = (classDetails.spacesLeft / classDetails.capacity) * 100;
-  const isAlmostFull = percentRemaining < 20 && !isFull;
+  const displaySpacesLeft = classDetails.spacesLeft <= 0 ? 0 :classDetails.spacesLeft;
+  const percentRemaining = (displaySpacesLeft / classDetails.capacity) * 100;
+  const isAlmostFull = percentRemaining < CLASS_CAPACITY_CONFIG.ALMOST_FULL_PERCENTAGE && !isFull;
 
     return (
     <ShowView className="class-view class-show space-y-6">
@@ -162,25 +163,38 @@ const ClassesShow = () => {
         )}
             </div>
 
-            <Card className="details-card">
-        {/* Class Details */}
-        <div>
+        <Card className="details-card">
+            {/* Class Details */}
+            <div>
                 <div className="details-header">
                     <div>
               <h1>{classDetails.name}</h1>
               <p>{classDetails.description}</p>
                     </div>
 
-                    <div>
-              <Badge variant="outline">{classDetails.capacity} spots</Badge>
-              <Badge
-                variant={
-                  classDetails.status === "active" ? "default" : "secondary"
-                }
-                data-status={classDetails.status}
-              >
-                {classDetails.status.toUpperCase()}
-              </Badge>
+                    <div className="flex items-center gap-2">
+                        {isFull ? (
+                            <Badge className="bg-rose-600 hover:bg-rose-600 text-white font-bold h-6 tracking-wide border-none px-2.5">
+                                CLASS FULL
+                            </Badge>
+                        ) : isAlmostFull ? (
+                            <Badge className="bg-amber-500 hover:bg-amber-500 text-white font-bold h-6 tracking-wide border-none px-2.5">
+                                ALMOST FULL
+                            </Badge>
+                        ) : null
+                        }
+                        <Badge variant="outline">
+                            {displaySpacesLeft} / {classDetails.capacity} spots available
+                        </Badge>
+
+                        <Badge
+                            variant={
+                                classDetails.status === "active" ? "default" : "secondary"
+                            }
+                            data-status={classDetails.status}
+                        >
+                            {classDetails.status.toUpperCase()}
+                        </Badge>
                     </div>
                 </div>
 
@@ -211,7 +225,7 @@ const ClassesShow = () => {
                         </div>
                     </div>
 
-        <Separator />
+            <Separator />
 
         {/* Subject Card */}
                     <div className="subject">
@@ -226,7 +240,7 @@ const ClassesShow = () => {
                         </div>
                     </div>
 
-        <Separator />
+            <Separator />
 
                 <div className="join">
                   <h2>🎓 Join Class</h2>
@@ -238,10 +252,15 @@ const ClassesShow = () => {
                                 </ol>
                 </div>
 
-        <Button size="lg" className="w-full">
-          Join Class
-        </Button>
-      </Card>
+            <Button
+                size="lg"
+                className="w-full"
+                disabled={isFull}
+                variant={isFull ? "secondary" : "default"}
+            >
+                {isFull ? "Class Full" : "Join Class"}
+            </Button>
+        </Card>
 
       <Card className="hover:shadow-md transition-shadow">
         <CardHeader className="flex flex-row items-center justify-between">
