@@ -55,6 +55,10 @@ export const ALLOWED_TYPES = [
     "image/webp",
 ];
 
+export const CLASS_CAPACITY_CONFIG = {
+    ALMOST_FULL_PERCENTAGE: 20, // The percentage threshold below which a class flags an "Almost Full" warning state
+} as const;
+
 const getEnvVar = (key: string): string => {
     const value = import.meta.env[key];
     if (!value) {

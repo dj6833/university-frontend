@@ -72,7 +72,7 @@ const EnrollmentsJoin = () => {
 
       <h1 className="page-title">Join by Invite Code</h1>
       <div className="intro-row">
-        <p>Enter the invite code provided by your instructor.</p>
+        <p>Enter the invite code provided by your lecturer.</p>
       </div>
 
       <Separator />
