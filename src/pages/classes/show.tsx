@@ -131,6 +131,10 @@ const ClassesShow = () => {
     teacherInitials || "NA"
   )}`;
 
+  const isFull = classDetails.spacesLeft <= 0;
+  const percentRemaining = (classDetails.spacesLeft / classDetails.capacity) * 100;
+  const isAlmostFull = percentRemaining < 20 && !isFull;
+
     return (
     <ShowView className="class-view class-show space-y-6">
       <ShowViewHeader resource="classes" title="Class Details" />
@@ -182,7 +186,7 @@ const ClassesShow = () => {
 
                 <div className="details-grid">
                     <div className="instructor">
-              <p>👨‍🏫 Instructor</p>
+              <p>👨‍🏫 Lecturer</p>
                         <div>
                 <img
                   src={classDetails.teacher?.image ?? placeholderUrl}

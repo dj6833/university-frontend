@@ -18,6 +18,8 @@ interface RecommendationItem {
     description: string;
     match_strength: number;
     bannerUrl?: string;
+    capacity: number;
+    spacesLeft: number;
     subject?: { name: string; code: string };
     teacher?: { name: string; email: string; image: string };
 }
@@ -42,10 +44,20 @@ export const RecommendationsVisualGrid = ({ data }: { data: RecommendationItem[]
                     const status = item.status;
                     const statusVariant = status === "active" ? "default" : "secondary";
 
+                    const isFull = item.spacesLeft <= 0;
+                    const seatsUsed = item.capacity - item.spacesLeft;
+
+                    const percentRemaining = (item.spacesLeft / item.capacity) * 100;
+                    const isAlmostFull = percentRemaining < 20 && !isFull;
+
                     return (
                         <div
                             key={item.id}
-                            className="group flex flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
+                            className={`group flex flex-col overflow-hidden rounded-xl border bg-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+                                isFull
+                                    ? "border-slate-200 bg-slate-50/50"
+                                    : "border-slate-200/80 hover:border-slate-300"
+                            }`}
                         >
                             <div className="relative aspect-[16/10] w-full bg-slate-100 overflow-hidden">
                                 {item.bannerUrl ? (
@@ -60,14 +72,24 @@ export const RecommendationsVisualGrid = ({ data }: { data: RecommendationItem[]
                                     </div>
                                 )}
 
-                                <div className={`absolute right-3 top-3 inline-flex items-center rounded-lg border px-2.5 py-1 text-xs font-bold shadow-xs backdrop-blur-md ${ragClass}`}>
+                                {isFull ? (
+                                    <div className="absolute left-3 top-3 inline-flex items-center rounded-lg bg-rose-600 px-2.5 py-1 text-xs font-bold text-white shadow-xs z-10">
+                                        Class Full
+                                    </div>
+                                ) : isAlmostFull ? (
+                                    <div className="absolute left-3 top-3 inline-flex items-center rounded-lg bg-amber-500 px-2.5 py-1 text-xs font-bold text-white shadow-xs z-10">
+                                        Almost Full
+                                    </div>
+                                ) : null}
+
+                                <div className={`absolute right-3 top-3 inline-flex items-center rounded-lg border px-2.5 py-1 text-xs font-bold shadow-xs backdrop-blur-md ${ragClass} z-10`}>
                                     <Sparkles className="mr-1 h-3 w-3" />
                                     {item.match_strength}% Match
                                 </div>
                             </div>
 
                             <div className="flex flex-1 flex-col p-5">
-                                <Badge className=" h-5" variant={statusVariant}>{status.toUpperCase()}</Badge>
+                                <Badge className=" h-5 self-start" variant={statusVariant}>{status.toUpperCase()}</Badge>
 
                                 <h3 className="mt-1 text-base font-bold text-slate-900 line-clamp-1">
                                     {item.name || "Unassigned Class Name"}
@@ -77,27 +99,57 @@ export const RecommendationsVisualGrid = ({ data }: { data: RecommendationItem[]
                                     {item.description}
                                 </p>
 
-                                <div className="mt-4 flex items-center gap-2 text-xs text-slate-600">
+                                <div className="mt-4 flex items-center gap-2">
                                     <Avatar className="size-7">
                                         {item.teacher?.image && (
                                             <AvatarImage src={item.teacher?.image} alt={item.teacher?.name} />
                                         )}
                                         <AvatarFallback>{getInitials(item.teacher?.name)}</AvatarFallback>
                                     </Avatar>
-                                    <span className="truncate font-medium">
-                                        {item.teacher?.name || "Instructor Unassigned"}
-                                    </span>
+
+                                    <div className="flex flex-col min-w-0 leading-tight">
+                                        {/* UK University Rank Marker */}
+                                        <span className="text-[9px] font-bold tracking-widest text-muted-foreground uppercase mb-0.5">
+                                          Lecturer
+                                        </span>
+                                        {/* Teacher Name Row */}
+                                        <span className="text-xs font-semibold text-slate-800 truncate">
+                                          {item.teacher?.name || "Teacher Unassigned"}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="mt-4 space-y-1.5">
+                                    <div className="flex items-center justify-between text-[11px] font-medium">
+                                        <span className="text-slate-500">Available Seats</span>
+                                        <span className={`font-semibold ${
+                                            isFull ? "text-rose-600 font-bold" : isAlmostFull ? "text-amber-600 font-semibold" : "text-slate-700"
+                                        }`}>
+                        {isFull ? "0 spaces left" : `${item.spacesLeft} / ${item.capacity} remaining`}
+                    </span>
+                                    </div>
+                                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full transition-all duration-500 rounded-full ${
+                                                isFull
+                                                    ? "bg-rose-500"
+                                                    : isAlmostFull
+                                                        ? "bg-amber-500"
+                                                        : "bg-emerald-500"
+                                            }`}
+                                            style={{ width: `${Math.min((seatsUsed / item.capacity) * 100, 100)}%` }}
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="my-4 border-t border-slate-100" />
 
-                                <div className="mt-auto flex items-center justify-between gap-2">
+                                <div className="mt-auto flex items-end justify-between gap-2">
                                     <div className="flex flex-col text-[10px] font-mono text-slate-400">
                                         {
                                             item.subject?.name ? (
-                                            <Badge variant="secondary">{item.subject.name}</Badge>
+                                                <Badge variant="secondary" className="whitespace-nowrap">{item.subject.name}</Badge>
                                             ) : (
-                                            <span className="text-muted-foreground">(Subject Unknown)</span>
+                                                <span className="text-muted-foreground text-[11px] pb-1">(Subject Unknown)</span>
                                             )
                                         }
                                     </div>
@@ -105,7 +157,7 @@ export const RecommendationsVisualGrid = ({ data }: { data: RecommendationItem[]
                                     <ShowButton
                                         resource="classes"
                                         recordItemId={item.id}
-                                        variant="outline"
+                                        variant={isFull ? "outline" : "default"}
                                         size="sm"
                                         className="h-8 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
                                     >
