@@ -1,7 +1,7 @@
 import { useDocumentTitle } from "@refinedev/react-router";
 import {APP_TITLE_SUFFIX, CLASS_CAPACITY_CONFIG} from "@/constants";
 import { AdvancedImage } from "@cloudinary/react";
-import {useShow} from "@refinedev/core";
+import {useShow, useLink, useGetToPath } from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { bannerPhoto } from "@/lib/cloudinary";
 import {ClassDetails} from "@/types";
 import {getInitials} from "@/lib/utils.ts";
+import { CreateButton } from "@/components/refine-ui/buttons/create";
 
 type ClassUser = {
   id: string;
@@ -40,6 +41,16 @@ const ClassesShow = () => {
   });
 
     const classDetails = query.data?.data;
+
+    const Link = useLink();
+    const getToPath = useGetToPath();
+    const targetPath = getToPath({
+        resource: {
+            name: "enrollments",
+        },
+        action: "create",
+        meta: { id: classDetails?.id ?? 0 },
+    });
 
   const studentColumns = useMemo<ColumnDef<ClassUser>[]>(
     () => [
@@ -240,26 +251,108 @@ const ClassesShow = () => {
                         </div>
                     </div>
 
-            <Separator />
+            {/*<Separator />*/}
 
-                <div className="join">
-                  <h2>🎓 Join Class</h2>
+                {/*<div className="join">*/}
+                {/*  <h2>🎓 Join Class</h2>*/}
 
-                                <ol>
-                    <li>Ask your teacher for the invite code.</li>
-                    <li>Click on &quot;Join Class&quot; button.</li>
-                    <li>Paste the code and click &quot;Join&quot;</li>
-                                </ol>
+                {/*                <ol>*/}
+                {/*    <li>Ask your teacher for the invite code.</li>*/}
+                {/*    <li>Click on &quot;Join Class&quot; button.</li>*/}
+                {/*    <li>Paste the code and click &quot;Join&quot;</li>*/}
+                {/*                </ol>*/}
+                {/*</div>*/}
+
+            {/*<Button*/}
+            {/*    size="lg"*/}
+            {/*    className="w-full"*/}
+            {/*    disabled={isFull}*/}
+            {/*    variant={isFull ? "secondary" : "default"}*/}
+            {/*>*/}
+            {/*    {isFull ? "Class Full" : "Join Class"}*/}
+            {/*</Button>*/}
+
+
+            {isFull ? (
+                <div className="w-full text-center p-4 rounded-xl border border-rose-100 bg-rose-50/50 text-rose-700 text-sm font-semibold tracking-wide">
+                    ⚠️ Sorry, this class has reached capacity and is currently unavailable to join
                 </div>
+            ) : (
+                <CreateButton
+                    resource="enrollments"
+                    meta={{ id: classDetails?.id ?? 0 }}
+                    style={{ width: "100%" }}
+                >
+                    Join Class
+                </CreateButton>
+            )}
 
-            <Button
-                size="lg"
-                className="w-full"
-                disabled={isFull}
-                variant={isFull ? "secondary" : "default"}
-            >
-                {isFull ? "Class Full" : "Join Class"}
-            </Button>
+                {/*<CreateButton*/}
+                {/*    resource="enrollments"*/}
+                {/*    meta={{ id: classDetails.id }}*/}
+                {/*    disabled={isFull}*/}
+                {/*    style={{ width: "100%" }}*/}
+                {/*    variant={isFull ? "secondary" : "default"}*/}
+                {/*>*/}
+                {/*    {isFull ? "Sorry, class currently unavailable" : "Join Class"}*/}
+                {/*</CreateButton>*/}
+
+
+            {/*<CreateButton*/}
+            {/*    resource="enrollments"*/}
+            {/*    meta={{ id: classDetails.id }} // 🌟 This automatically appends your /:id onto the path!*/}
+            {/*    disabled={isFull}*/}
+            {/*    style={{ width: "100%" }} // Forces the wrapper block to remain full-width*/}
+            {/*>*/}
+            {/*    <Button*/}
+            {/*        size="lg"*/}
+            {/*        className="w-full"*/}
+            {/*        disabled={isFull}*/}
+            {/*        variant={isFull ? "secondary" : "default"}*/}
+            {/*    >*/}
+            {/*        {isFull ? "Class Full" : "Join Class"}*/}
+            {/*    </Button>*/}
+            {/*</CreateButton>*/}
+
+            {/*{isFull ? (*/}
+            {/*    <Button*/}
+            {/*        size="lg"*/}
+            {/*        className="w-full font-semibold"*/}
+            {/*        disabled={true}*/}
+            {/*        variant="secondary"*/}
+            {/*    >*/}
+            {/*        Class Full*/}
+            {/*    </Button>*/}
+            {/*) : (*/}
+            {/*    <Link*/}
+            {/*        to={targetPath || "#"}*/}
+            {/*        className="w-full block"*/}
+            {/*    >*/}
+            {/*        <Button*/}
+            {/*            size="lg"*/}
+            {/*            className="w-full font-semibold"*/}
+            {/*            variant="default"*/}
+            {/*        >*/}
+            {/*            Join Class*/}
+            {/*        </Button>*/}
+            {/*    </Link>*/}
+            {/*)}*/}
+
+            {/*<Link*/}
+            {/*    to={targetPath || "#"}*/}
+            {/*    disabled={isFull}*/}
+            {/*    asChild // Tells Refine to step aside and let Shadcn render the node*/}
+            {/*>*/}
+            {/*    <Button*/}
+            {/*        size="lg"*/}
+            {/*        className="w-full font-semibold"*/}
+            {/*        disabled={isFull}*/}
+            {/*        variant={isFull ? "secondary" : "default"}*/}
+            {/*    >*/}
+            {/*        {isFull ? "Class Full" : "Join Class"}*/}
+            {/*    </Button>*/}
+            {/*</Link>*/}
+
         </Card>
 
       <Card className="hover:shadow-md transition-shadow">

@@ -40,7 +40,7 @@ import DepartmentsCreate from "./pages/departments/create";
 import DepartmentShow from "./pages/departments/show";
 import FacultyList from "./pages/faculty/list";
 import FacultyShow from "./pages/faculty/show";
-import EnrolmentList from "@/pages/enrollments/list.tsx";
+import EnrolmentList from  "@/pages/enrollments/list";
 import EnrollmentsCreate from "./pages/enrollments/create";
 import EnrollmentsJoin from "./pages/enrollments/join";
 import EnrollmentConfirm from "./pages/enrollments/confirm";
@@ -255,7 +255,7 @@ function App() {
                 {
                   name: "enrollments",
                   list: "/enrollments",
-                  // create: "/enrollments/create",
+                  create: "/enrollments/create/:id",
                   meta: {
                     label: "My Classes",
                     icon: <ClipboardCheck />,
@@ -336,7 +336,7 @@ function App() {
 
                   <Route path="enrollments">
                     <Route index element={<EnrolmentList />} />
-                    <Route path="create" element={<EnrollmentsCreate />} />
+                    <Route path="create/:id" element={<EnrollmentsCreate />} />
                     <Route path="join" element={<EnrollmentsJoin />} />
                     <Route path="confirm" element={<EnrollmentConfirm />} />
                     {/*<Route path="recommendations" element={<RecommendedClassList />} />*/}
