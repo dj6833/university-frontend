@@ -3,24 +3,21 @@ import { APP_TITLE_SUFFIX } from "@/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "@refinedev/react-hook-form";
 import { useBack, useOne, type BaseRecord, type HttpError } from "@refinedev/core";
+import { useParams } from "react-router";
 import * as z from "zod";
 
-import { useParams } from "react-router";
-
-// Maintaining 100% identical styling tokens from your core views
 import { CreateView } from "@/components/refine-ui/views/create-view";
 import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {Card, CardTitle} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Form, FormField } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// 1. Simplified Zod Schema: No text inputs required, we just validate the hidden parameter
+// Core Form Validation Schema
 const enrollmentSchema = z.object({
   classId: z.number().positive("Valid Class ID is required"),
 });
-
 type EnrollmentFormValues = z.infer<typeof enrollmentSchema>;
 
 const EnrollmentsCreate = () => {
@@ -30,24 +27,25 @@ const EnrollmentsCreate = () => {
   const { id } = useParams();
   const targetClassId = Number(id) || 0;
 
+  // Retrieve the target class data payload
   const { query: classQuery } = useOne({
     resource: "classes",
     id: targetClassId,
     queryOptions: {
-      enabled: targetClassId > 0, // Only runs if a valid ID exists in the URL parameters
+      enabled: targetClassId > 0,
     },
   });
 
   const classDetails = classQuery.data?.data ?? null;
   const isClassLoading = classQuery.isLoading;
 
-  // 4. Initialize your standard Refine hook form layout
+  // Initialize the native Refine headless hook form lifecycle configuration
   const form = useForm<BaseRecord, HttpError, EnrollmentFormValues>({
     resolver: zodResolver(enrollmentSchema),
     refineCoreProps: {
       resource: "enrollments",
       action: "create",
-      redirect: "list", // Seamlessly bounces the student to their schedule upon completion
+      redirect: "list",
     },
     defaultValues: {
       classId: targetClassId,
@@ -63,311 +61,151 @@ const EnrollmentsCreate = () => {
 
   const onSubmit = async (values: EnrollmentFormValues) => {
     try {
-      // Fires native onFinish mutation payload exactly like your other pages
       await onFinish(values);
     } catch (error) {
       console.error("Error joining class:", error);
     }
   };
 
+  const teacherName = classDetails?.teacher?.name ?? "Unknown";
+
   return (
-      <CreateView className="class-view">
+      <CreateView className="class-view class-show">
         <Breadcrumb />
 
-        {/* Symmetrical Title Elements */}
         <h1 className="page-title">Confirm Enrolment</h1>
         <div className="intro-row">
-          <p>Please review the below information before joining this class</p>
+          <p>Please review the below information before confirming your enrolment.</p>
           <Button onClick={() => back()}>Go Back</Button>
         </div>
 
         <Separator />
 
-        <div className="my-4 flex items-center">
-          <Card className="class-form-card">
-            <CardHeader className="relative z-10">
-              <CardTitle className="text-2xl pb-0 font-bold text-gradient-orange">
-                Review & Join
-              </CardTitle>
-            </CardHeader>
+        {/* 🌟 Parent container constraints removed to let the card stretch to full width */}
+        <div className="my-4 w-full">
+          {isClassLoading || !classDetails ? (
+              <div className="space-y-4 py-2">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-10 w-full mt-6" />
+              </div>
+          ) : (
+              <Form {...form}>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <FormField
+                      control={control}
+                      name="classId"
+                      render={({ field }) => (
+                          <input type="hidden" {...field} value={targetClassId} />
+                      )}
+                  />
 
-            <Separator />
-
-            <CardContent className="mt-7">
-              {isClassLoading ? (
-                  // Clean layout skeletons matching your standard view properties while loading
-                  <div className="space-y-4 py-2">
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                    <Skeleton className="h-10 w-full mt-6" />
-                  </div>
-              ) : (
-                  <Form {...form}>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-
-                      {/* Hidden tracking field holds our classId securely */}
-                      <FormField
-                          control={control}
-                          name="classId"
-                          render={({ field }) => (
-                              <input type="hidden" {...field} value={targetClassId} />
-                          )}
-                      />
-
-                      {/* 🌟 THE PASSTHROUGH PREVIEW PRESENTATION: Displays key meta info */}
-                      <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 space-y-2">
-                        <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase font-mono">
-                          {classDetails?.subject?.code || "COURSE DETAILS"}
+                  <Card className="details-card">
+                    <div>
+                      {/* 🌟 PERFECT REPLICATION: Restores your native details-header wrapper and structure */}
+                      <div className="details-header">
+                        <div>
+                          {/* Uses your exact system typography tags and spacing layout keys */}
+                          <CardTitle>You are joining class</CardTitle>
+                          <h1>{classDetails.name}</h1>
                         </div>
-                        <h2 className="text-lg font-bold text-slate-900 leading-tight">
-                          {classDetails?.name || "Unassigned Class Name"}
-                        </h2>
-                        <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
-                          {classDetails?.description || "No class description provided."}
-                        </p>
-                        <div className="text-xs font-medium text-slate-600 pt-2 border-t border-slate-100 mt-2">
-                          <span className="text-slate-400 font-normal">Lecturer:</span> {classDetails?.teacher?.name || "Not assigned"}
+
+                        {/*
+                             🌟 THE ALIGNMENT SECRET:
+                            Keeping this structural div layout side-by-side preserves the flex balance
+                            of your stylesheet, snapping the h1 title perfectly back to the left edge!
+                          */}
+                        <div className="flex items-center gap-2">
+                          {/* Kept empty to satisfy your global CSS layout flex engine rules */}
                         </div>
                       </div>
 
+                      {/* Restored your exact nested row elements for Department, Subject, and Lecturer */}
+                      <div className="details-grid flex flex-row flex-wrap gap-x-12 gap-y-6 items-start">
 
-                      {/* 🌟 THE ADDITION: Student expectations & compliance block */}
-                      <div className="mt-6 pt-5 border-t border-slate-100 text-left space-y-4">
-                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-mono">
-                          Academic Expectations & Guidelines
-                        </h4>
+                        {/* 1. Department Column */}
+                        <div className="department flex flex-col leading-normal min-w-[200px] max-w-xs">
+                          <p>🏛️ Department</p>
+                          <div>
+                            <p>{classDetails?.department?.name || ""}</p>
+                            <p>{""}</p>
+                          </div>
+                        </div>
 
-                        <ul className="space-y-3 text-xs text-slate-600 leading-relaxed">
-                          <li className="flex items-start gap-2.5">
-                            <span className="text-orange-600 mt-0.5 shrink-0 select-none">✓</span>
-                            <span>
-        <strong>Attendance Commitment:</strong> By confirming your place, you agree to maintain regular attendance across all scheduled lecture and seminar slots for this module.
-      </span>
-                          </li>
+                        {/* 2. Subject Column */}
+                        <div className="subject flex flex-col leading-normal min-w-[200px] max-w-xs">
+                          <p>📚 Subject</p>
+                          <div>
+                            <p>{classDetails?.subject?.name || ""}</p>
+                            <p>{""}</p>
+                          </div>
+                        </div>
 
-                          <li className="flex items-start gap-2.5">
-                            <span className="text-orange-600 mt-0.5 shrink-0 select-none">✓</span>
-                            <span>
-        <strong>Virtual Learning Access:</strong> Your student profile will be automatically granted workspace permissions to access core lecture slide notes and digital resource materials.
-      </span>
-                          </li>
+                        {/* 3. Lecturer Column */}
+                        <div className="instructor flex flex-col leading-normal min-w-[200px] max-w-xs">
+                          <p>👨‍🏫 Lecturer</p>
+                          <div>
+                            <div>
+                              <p>{teacherName}</p>
+                              <p>{""}</p>
+                            </div>
+                          </div>
+                        </div>
 
-                          <li className="flex items-start gap-2.5">
-                            <span className="text-orange-600 mt-0.5 shrink-0 select-none">✓</span>
-                            <span>
-        <strong>Seat Allocation Lock:</strong> This registration allocates one physical space from the room's remaining capacity pool. Retracting your enrolment later may require module leader approval.
-      </span>
-                          </li>
-                        </ul>
                       </div>
+                    </div>
 
-                      {/* Space modifier right before the button */}
-                      <div className="pt-2" />
+                    <Separator />
 
+                    {/* Expectations Panel styled via your native .join class selectors */}
+                    <div className="join space-y-4">
+                      <h2>📋 Expectations & Guidelines</h2>
 
+                      <div className="space-y-4 mt-2">
 
+                        {/* Bullet Point 1 */}
+                        <div className="flex items-start gap-3">
+                          <span className="text-base font-bold text-slate-400 select-none mt-0.5">•</span>
+                          <p className="m-0 leading-relaxed">
+                            <strong>Attendance Monitoring:</strong> You agree to maintain regular attendance across all scheduled lecture and seminar slots. Attendance is strictly monitored by the faculty and must not drop below expected university standards.
+                          </p>
+                        </div>
 
+                        {/* Bullet Point 2 */}
+                        <div className="flex items-start gap-3">
+                          <span className="text-base font-bold text-slate-400 select-none mt-0.5">•</span>
+                          <p className="m-0 leading-relaxed">
+                            <strong>Independent Study:</strong> In alignment with university guidelines, this module requires independent preparation. You are expected to complete all assigned weekly readings and review seminar briefs ahead of each scheduled session.
+                          </p>
+                        </div>
 
+                        {/* Bullet Point 3 */}
+                        <div className="flex items-start gap-3">
+                          <span className="text-base font-bold text-slate-400 select-none mt-0.5">•</span>
+                          <p className="m-0 leading-relaxed">
+                            <strong>Course Changes & Withdrawals:</strong> By confirming your place, you are registering an active seat on this class. Please discuss with your Lecturer before leaving a class, and refer to your university handbook for more details regarding enrolment regulations.
+                          </p>
+                        </div>
 
+                      </div>
+                    </div>
 
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        By clicking confirm, you will be instantly added to the class list and allocate one place from the total room capacity.
-                      </p>
-
-                      <Button type="submit" size="lg" className="w-full" disabled={isSubmitting || targetClassId === 0}>
-                        {isSubmitting ? "Enrolling..." : "Confirm & Join Class"}
-                      </Button>
-                    </form>
-                  </Form>
-              )}
-            </CardContent>
-          </Card>
+                    {/* Your full-width primary submission button element wrapper */}
+                    <Button
+                        type="submit"
+                        size="lg"
+                        className="w-full font-semibold"
+                        disabled={isSubmitting}
+                    >
+                      {isSubmitting ? "Enrolling..." : "Confirm & Join Class"}
+                    </Button>
+                  </Card>
+                </form>
+              </Form>
+          )}
         </div>
       </CreateView>
   );
 };
 
 export default EnrollmentsCreate;
-
-
-
-//old page
-// /*
-// page not linked to in app, likely will be removed once user can join classes through a better method
-//  */
-// import { useDocumentTitle } from "@refinedev/react-router";
-// import {APP_TITLE_SUFFIX} from "@/constants";
-// import { zodResolver } from "@hookform/resolvers/zod";
-// import { useForm } from "react-hook-form";
-// import * as z from "zod";
-// import { useCreate, useGetIdentity, useList } from "@refinedev/core";
-// import { useNavigate } from "react-router";
-//
-// import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
-// import { CreateView } from "@/components/refine-ui/views/create-view";
-// import { Button } from "@/components/ui/button";
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import {
-//   Form,
-//   FormControl,
-//   FormField,
-//   FormItem,
-//   FormLabel,
-//   FormMessage,
-// } from "@/components/ui/form";
-// import { Input } from "@/components/ui/input";
-// import { Separator } from "@/components/ui/separator";
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from "@/components/ui/select";
-// import {ClassDetails, User} from "@/types";
-
-
-// const enrollSchema = z.object({
-//   classId: z.coerce.number().min(1, "Class is required"),
-// });
-//
-// type EnrollFormValues = z.infer<typeof enrollSchema>;
-//
-// const EnrollmentsCreate = () => {
-//   useDocumentTitle(`Enrol in a Class ${APP_TITLE_SUFFIX}`);
-//   const navigate = useNavigate();
-//   const {
-//     mutateAsync: createEnrollment,
-//     mutation: { isPending },
-//   } = useCreate();
-//   const { data: currentUser } = useGetIdentity<User>();
-//
-//   const { query: classesQuery } = useList<ClassDetails>({
-//     resource: "classes",
-//     pagination: {
-//       pageSize: 100,
-//     },
-//   });
-//
-//   const classes = classesQuery.data?.data ?? [];
-//   const classesLoading = classesQuery.isLoading;
-//
-//   const form = useForm<EnrollFormValues>({
-//     resolver: zodResolver(enrollSchema),
-//     defaultValues: {
-//       classId: 0,
-//     },
-//   });
-//
-//   const selectedClassId = form.watch("classId");
-//
-//   const onSubmit = async (values: EnrollFormValues) => {
-//     if (!currentUser?.id) return;
-//
-//     const response = await createEnrollment({
-//       resource: "enrollments",
-//       values: {
-//         classId: values.classId,
-//         studentId: currentUser.id,
-//       },
-//     });
-//
-//     navigate("/enrollments/confirm", {
-//       state: {
-//         enrollment: response?.data,
-//       },
-//     });
-//   };
-//
-//   const isSubmitDisabled =
-//     isPending ||
-//     classesLoading ||
-//     !currentUser?.id ||
-//     !classes.length ||
-//     !selectedClassId;
-//
-//   return (
-//     <CreateView className="class-view">
-//       <Breadcrumb />
-//
-//       <h1 className="page-title">Enrol in a Class</h1>
-//       <div className="intro-row">
-//         <p>Select a class to enrol as the current user.</p>
-//       </div>
-//
-//       <Separator />
-//
-//       <div className="my-4 flex items-center">
-//         <Card className="class-form-card">
-//           <CardHeader className="relative z-10">
-//             <CardTitle className="text-2xl pb-0 font-bold text-gradient-orange">
-//               Enrolment Form
-//             </CardTitle>
-//           </CardHeader>
-//
-//           <Separator />
-//
-//           <CardContent className="mt-7">
-//             <Form {...form}>
-//               <form
-//                 onSubmit={form.handleSubmit(onSubmit)}
-//                 className="space-y-5"
-//               >
-//                 <FormField
-//                   control={form.control}
-//                   name="classId"
-//                   render={({ field }) => (
-//                     <FormItem>
-//                       <FormLabel>
-//                         Class <span className="text-orange-600">*</span>
-//                       </FormLabel>
-//                       <Select
-//                         onValueChange={(value) => field.onChange(Number(value))}
-//                         value={field.value ? String(field.value) : ""}
-//                         disabled={classesLoading}
-//                       >
-//                         <FormControl>
-//                           <SelectTrigger className="w-full">
-//                             <SelectValue placeholder="Select a class" />
-//                           </SelectTrigger>
-//                         </FormControl>
-//                         <SelectContent>
-//                           {classes.map((classItem) => (
-//                             <SelectItem
-//                               key={classItem.id}
-//                               value={String(classItem.id)}
-//                             >
-//                               {classItem.name}
-//                             </SelectItem>
-//                           ))}
-//                         </SelectContent>
-//                       </Select>
-//                       <FormMessage />
-//                     </FormItem>
-//                   )}
-//                 />
-//
-//                 <FormItem>
-//                   <FormLabel>Student</FormLabel>
-//                   <FormControl>
-//                     <Input
-//                       value={currentUser?.email ?? "Not signed in"}
-//                       readOnly
-//                     />
-//                   </FormControl>
-//                 </FormItem>
-//
-//                 <Button type="submit" size="lg" disabled={isSubmitDisabled}>
-//                   {isPending ? "Enroling..." : "Enrol"}
-//                 </Button>
-//               </form>
-//             </Form>
-//           </CardContent>
-//         </Card>
-//       </div>
-//
-//     </CreateView>
-//   );
-// };
-//
-// export default EnrollmentsCreate;
