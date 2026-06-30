@@ -77,7 +77,7 @@ const EnrollmentsCreate = () => {
         {/* Symmetrical Title Elements */}
         <h1 className="page-title">Confirm Enrolment</h1>
         <div className="intro-row">
-          <p>Please review the class information below before finalizing your registration place.</p>
+          <p>Please review the below information before joining this class</p>
           <Button onClick={() => back()}>Go Back</Button>
         </div>
 
@@ -129,6 +129,46 @@ const EnrollmentsCreate = () => {
                           <span className="text-slate-400 font-normal">Lecturer:</span> {classDetails?.teacher?.name || "Not assigned"}
                         </div>
                       </div>
+
+
+                      {/* 🌟 THE ADDITION: Student expectations & compliance block */}
+                      <div className="mt-6 pt-5 border-t border-slate-100 text-left space-y-4">
+                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-mono">
+                          Academic Expectations & Guidelines
+                        </h4>
+
+                        <ul className="space-y-3 text-xs text-slate-600 leading-relaxed">
+                          <li className="flex items-start gap-2.5">
+                            <span className="text-orange-600 mt-0.5 shrink-0 select-none">✓</span>
+                            <span>
+        <strong>Attendance Commitment:</strong> By confirming your place, you agree to maintain regular attendance across all scheduled lecture and seminar slots for this module.
+      </span>
+                          </li>
+
+                          <li className="flex items-start gap-2.5">
+                            <span className="text-orange-600 mt-0.5 shrink-0 select-none">✓</span>
+                            <span>
+        <strong>Virtual Learning Access:</strong> Your student profile will be automatically granted workspace permissions to access core lecture slide notes and digital resource materials.
+      </span>
+                          </li>
+
+                          <li className="flex items-start gap-2.5">
+                            <span className="text-orange-600 mt-0.5 shrink-0 select-none">✓</span>
+                            <span>
+        <strong>Seat Allocation Lock:</strong> This registration allocates one physical space from the room's remaining capacity pool. Retracting your enrolment later may require module leader approval.
+      </span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Space modifier right before the button */}
+                      <div className="pt-2" />
+
+
+
+
+
+
 
                       <p className="text-xs text-muted-foreground leading-relaxed">
                         By clicking confirm, you will be instantly added to the class list and allocate one place from the total room capacity.

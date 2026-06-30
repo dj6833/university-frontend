@@ -224,16 +224,6 @@ function App() {
                   },
                 },
                 {
-                  name: "subjects",
-                  list: "/subjects",
-                  create: "/subjects/create",
-                  show: "/subjects/show/:id",
-                  meta: {
-                    label: "Subjects",
-                    icon: <BookOpen />,
-                  },
-                },
-                {
                   name: "departments",
                   list: "/departments",
                   show: "/departments/show/:id",
@@ -241,6 +231,16 @@ function App() {
                   meta: {
                     label: "Departments",
                     icon: <Building2 />,
+                  },
+                },
+                {
+                  name: "subjects",
+                  list: "/subjects",
+                  create: "/subjects/create",
+                  show: "/subjects/show/:id",
+                  meta: {
+                    label: "Subjects",
+                    icon: <BookOpen />,
                   },
                 },
                 {
@@ -273,11 +273,11 @@ function App() {
                 },
                 {
                   name: "class-recommendations",
-                  list: "/classes/recommendations", // Keep your working file path URL intact
+                  list: "/classes/recommendations",
                   meta: {
-                    label: "Recommended for You",
-                    parent: "classes", // 🔗 Natively links it under the 'All Classes' breadcrumb group [INDEX]!
-                    hide: true,        // Hides it from clogging your left sidebar menu list [INDEX]
+                    label: "Recommended Classes",
+                    parent: "classes",
+                    hide: true, //don't show in sidebar
                   },
                 },
               ]}

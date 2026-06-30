@@ -298,10 +298,10 @@ const ClassesList = () => {
     return (
         <ListView>
             <Breadcrumb />
-      <h1 className="page-title">Classes</h1>
+      <h1 className="page-title">All Classes</h1>
 
             <div className="intro-row">
-        <p>Quick access to essential metrics and management tools.</p>
+        <p>Explore which classes are available at our University</p>
 
                 <div className="actions-row">
                     <div className="search-field">

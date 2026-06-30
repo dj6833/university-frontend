@@ -134,7 +134,7 @@ const SubjectListPage = () => {
       <h1 className="page-title">Subjects</h1>
 
             <div className="intro-row">
-                <p>Quick access to essential metrics and management tools.</p>
+                <p>Directory of subjects available to students</p>
 
                 <div className="actions-row">
                     <div className="search-field">

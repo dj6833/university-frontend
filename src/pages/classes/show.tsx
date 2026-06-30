@@ -273,9 +273,14 @@ const ClassesShow = () => {
             {/*</Button>*/}
 
 
-            {isFull ? (
+            {classDetails.enrolledAlready ? (
+                <div className="w-full text-center p-4 rounded-xl border border-emerald-100 bg-emerald-50/50 text-emerald-800 text-sm font-semibold tracking-wide">
+                    <span>🎓</span> You are already enrolled in this class
+                </div>
+
+            ) : isFull ? (
                 <div className="w-full text-center p-4 rounded-xl border border-rose-100 bg-rose-50/50 text-rose-700 text-sm font-semibold tracking-wide">
-                    ⚠️ Sorry, this class has reached capacity and is currently unavailable to join
+                    <span>⚠️</span> Sorry, this class has reached capacity and is currently unavailable to join
                 </div>
             ) : (
                 <CreateButton
