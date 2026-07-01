@@ -108,7 +108,7 @@ const ClassesList = () => {
                 id: "teacher",
                 accessorKey: "teacher.name",
         size: 200,
-                header: () => <p className="column-title">Teacher</p>,
+                header: () => <p className="column-title">Lecturer</p>,
         cell: ({ getValue }) => {
           const teacherName = getValue<string>();
 
@@ -337,7 +337,7 @@ const ClassesList = () => {
                             </SelectTrigger>
 
                             <SelectContent>
-                <SelectItem value="all">All Teachers</SelectItem>
+                <SelectItem value="all">All Lecturers</SelectItem>
                 {teachers.map((teacher) => (
                   <SelectItem key={teacher.id} value={teacher.name}>
                     {teacher.name}

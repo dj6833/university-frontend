@@ -334,7 +334,7 @@ const EnrolmentList = () => {
                 id: "teacher",
                 accessorKey: "teacher.name",
                 size: 200,
-                header: () => <p className="column-title">Teacher</p>,
+                header: () => <p className="column-title">Lecturer</p>,
                 cell: ({getValue}) => {
                     const teacherName = getValue<string>();
 

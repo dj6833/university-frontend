@@ -100,7 +100,7 @@ const ClassesShow = () => {
     refineCoreProps: {
       resource: `classes/${classId}/users`,
       pagination: {
-        pageSize: 3,
+        pageSize: 10,
         mode: "server",
       },
       filters: {
@@ -179,17 +179,19 @@ const ClassesShow = () => {
             <div>
                 <div className="details-header">
                     <div>
-              <h1>{classDetails.name}</h1>
-              <p>{classDetails.description}</p>
+                        <h1>{classDetails.name}</h1>
+                        <p>{classDetails.description}</p>
                     </div>
 
                     <div className="flex items-center gap-2">
                         {isFull ? (
-                            <Badge className="bg-rose-600 hover:bg-rose-600 text-white font-bold h-6 tracking-wide border-none px-2.5">
+                            <Badge
+                                className="bg-rose-600 hover:bg-rose-600 text-white font-bold h-6 tracking-wide border-none px-2.5">
                                 CLASS FULL
                             </Badge>
                         ) : isAlmostFull ? (
-                            <Badge className="bg-amber-500 hover:bg-amber-500 text-white font-bold h-6 tracking-wide border-none px-2.5">
+                            <Badge
+                                className="bg-amber-500 hover:bg-amber-500 text-white font-bold h-6 tracking-wide border-none px-2.5">
                                 ALMOST FULL
                             </Badge>
                         ) : null
@@ -210,58 +212,64 @@ const ClassesShow = () => {
                 </div>
 
                 <div className="details-grid">
-                    <div className="instructor">
-              <p>👨‍🏫 Lecturer</p>
-                        <div>
-                <img
-                  src={classDetails.teacher?.image ?? placeholderUrl}
-                  alt={teacherName}
-                />
-
-                            <div>
-                                <p>{teacherName}</p>
-                  <p>{classDetails?.teacher?.email}</p>
-                            </div>
-                        </div>
-                    </div>
 
                     <div className="department">
-              <p>🏛️ Department</p>
+                        <p>🏛️ Department</p>
 
                         <div>
-                <p>{classDetails?.department?.name}</p>
-                <p>{classDetails?.department?.description}</p>
-              </div>
-            </div>
+                            <p>{classDetails?.department?.name}</p>
+                            <p>{classDetails?.department?.description}</p>
                         </div>
                     </div>
 
-            <Separator />
-
-        {/* Subject Card */}
+                    {/* Subject Card */}
                     <div className="subject">
-          <p>📚 Subject</p>
+                        <p>📚 Subject</p>
 
                         <div>
-            <Badge variant="outline">
-              Code: <span>{classDetails?.subject?.code}</span>
-            </Badge>
-            <p>{classDetails?.subject?.name}</p>
-            <p>{classDetails?.subject?.description}</p>
+                            {/*<Badge variant="outline">*/}
+                            {/*    Code: <span>{classDetails?.subject?.code}</span>*/}
+                            {/*</Badge>*/}
+                            <p>{classDetails?.subject?.name}</p>
+                            <p>{classDetails?.subject?.description}</p>
                         </div>
                     </div>
+
+                </div>
+            </div>
+
+            <Separator/>
+
+            {/* Subject Card */}
+            <div className="instructor">
+                <p>👨‍🏫 Lecturer</p>
+                <div>
+                    <img
+                        src={classDetails.teacher?.image ?? placeholderUrl}
+                        alt={teacherName}
+                    />
+
+                    <div>
+                        <p>{teacherName}</p>
+                        <p>{classDetails?.teacher?.email}</p>
+                    </div>
+                </div>
+            </div>
+
+
+
 
             {/*<Separator />*/}
 
-                {/*<div className="join">*/}
-                {/*  <h2>🎓 Join Class</h2>*/}
+            {/*<div className="join">*/}
+            {/*  <h2>🎓 Join Class</h2>*/}
 
-                {/*                <ol>*/}
-                {/*    <li>Ask your teacher for the invite code.</li>*/}
-                {/*    <li>Click on &quot;Join Class&quot; button.</li>*/}
-                {/*    <li>Paste the code and click &quot;Join&quot;</li>*/}
-                {/*                </ol>*/}
-                {/*</div>*/}
+            {/*                <ol>*/}
+            {/*    <li>Ask your teacher for the invite code.</li>*/}
+            {/*    <li>Click on &quot;Join Class&quot; button.</li>*/}
+            {/*    <li>Paste the code and click &quot;Join&quot;</li>*/}
+            {/*                </ol>*/}
+            {/*</div>*/}
 
             {/*<Button*/}
             {/*    size="lg"*/}
@@ -274,33 +282,35 @@ const ClassesShow = () => {
 
 
             {classDetails.enrolledAlready ? (
-                <div className="w-full text-center p-4 rounded-xl border border-emerald-100 bg-emerald-50/50 text-emerald-800 text-sm font-semibold tracking-wide">
+                <div
+                    className="w-full text-center p-4 rounded-xl border border-emerald-100 bg-emerald-50/50 text-emerald-800 text-sm font-semibold tracking-wide">
                     <span>🎓</span> You are already enrolled in this class
                 </div>
 
             ) : isFull ? (
-                <div className="w-full text-center p-4 rounded-xl border border-rose-100 bg-rose-50/50 text-rose-700 text-sm font-semibold tracking-wide">
+                <div
+                    className="w-full text-center p-4 rounded-xl border border-rose-100 bg-rose-50/50 text-rose-700 text-sm font-semibold tracking-wide">
                     <span>⚠️</span> Sorry, this class has reached capacity and is currently unavailable to join
                 </div>
             ) : (
                 <CreateButton
                     resource="enrollments"
-                    meta={{ id: classDetails?.id ?? 0 }}
-                    style={{ width: "100%" }}
+                    meta={{id: classDetails?.id ?? 0}}
+                    style={{width: "100%"}}
                 >
                     Join Class
                 </CreateButton>
             )}
 
-                {/*<CreateButton*/}
-                {/*    resource="enrollments"*/}
-                {/*    meta={{ id: classDetails.id }}*/}
-                {/*    disabled={isFull}*/}
-                {/*    style={{ width: "100%" }}*/}
-                {/*    variant={isFull ? "secondary" : "default"}*/}
-                {/*>*/}
-                {/*    {isFull ? "Sorry, class currently unavailable" : "Join Class"}*/}
-                {/*</CreateButton>*/}
+            {/*<CreateButton*/}
+            {/*    resource="enrollments"*/}
+            {/*    meta={{ id: classDetails.id }}*/}
+            {/*    disabled={isFull}*/}
+            {/*    style={{ width: "100%" }}*/}
+            {/*    variant={isFull ? "secondary" : "default"}*/}
+            {/*>*/}
+            {/*    {isFull ? "Sorry, class currently unavailable" : "Join Class"}*/}
+            {/*</CreateButton>*/}
 
 
             {/*<CreateButton*/}
