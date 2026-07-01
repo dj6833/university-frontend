@@ -244,7 +244,7 @@ export const RecommendedClassList = () => {
                             No recommended classes available
                         </h3>
                         <p className="text-sm text-muted-foreground mt-1 max-w-md">
-                            Join at least one class to access your personalised recommendations.
+                            Please join at least one class.<br/><br/>Once we have suitable data from other students available we will present your personalised recommendations here!
                         </p>
                     </div>
                 ) : (
