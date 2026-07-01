@@ -222,14 +222,10 @@ const ClassesShow = () => {
                         </div>
                     </div>
 
-                    {/* Subject Card */}
                     <div className="subject">
                         <p>📚 Subject</p>
 
                         <div>
-                            {/*<Badge variant="outline">*/}
-                            {/*    Code: <span>{classDetails?.subject?.code}</span>*/}
-                            {/*</Badge>*/}
                             <p>{classDetails?.subject?.name}</p>
                             <p>{classDetails?.subject?.description}</p>
                         </div>
@@ -240,7 +236,6 @@ const ClassesShow = () => {
 
             <Separator/>
 
-            {/* Subject Card */}
             <div className="instructor">
                 <p>👨‍🏫 Lecturer</p>
                 <div>
@@ -255,31 +250,6 @@ const ClassesShow = () => {
                     </div>
                 </div>
             </div>
-
-
-
-
-            {/*<Separator />*/}
-
-            {/*<div className="join">*/}
-            {/*  <h2>🎓 Join Class</h2>*/}
-
-            {/*                <ol>*/}
-            {/*    <li>Ask your teacher for the invite code.</li>*/}
-            {/*    <li>Click on &quot;Join Class&quot; button.</li>*/}
-            {/*    <li>Paste the code and click &quot;Join&quot;</li>*/}
-            {/*                </ol>*/}
-            {/*</div>*/}
-
-            {/*<Button*/}
-            {/*    size="lg"*/}
-            {/*    className="w-full"*/}
-            {/*    disabled={isFull}*/}
-            {/*    variant={isFull ? "secondary" : "default"}*/}
-            {/*>*/}
-            {/*    {isFull ? "Class Full" : "Join Class"}*/}
-            {/*</Button>*/}
-
 
             {classDetails.enrolledAlready ? (
                 <div
@@ -301,73 +271,6 @@ const ClassesShow = () => {
                     Join Class
                 </CreateButton>
             )}
-
-            {/*<CreateButton*/}
-            {/*    resource="enrollments"*/}
-            {/*    meta={{ id: classDetails.id }}*/}
-            {/*    disabled={isFull}*/}
-            {/*    style={{ width: "100%" }}*/}
-            {/*    variant={isFull ? "secondary" : "default"}*/}
-            {/*>*/}
-            {/*    {isFull ? "Sorry, class currently unavailable" : "Join Class"}*/}
-            {/*</CreateButton>*/}
-
-
-            {/*<CreateButton*/}
-            {/*    resource="enrollments"*/}
-            {/*    meta={{ id: classDetails.id }} // 🌟 This automatically appends your /:id onto the path!*/}
-            {/*    disabled={isFull}*/}
-            {/*    style={{ width: "100%" }} // Forces the wrapper block to remain full-width*/}
-            {/*>*/}
-            {/*    <Button*/}
-            {/*        size="lg"*/}
-            {/*        className="w-full"*/}
-            {/*        disabled={isFull}*/}
-            {/*        variant={isFull ? "secondary" : "default"}*/}
-            {/*    >*/}
-            {/*        {isFull ? "Class Full" : "Join Class"}*/}
-            {/*    </Button>*/}
-            {/*</CreateButton>*/}
-
-            {/*{isFull ? (*/}
-            {/*    <Button*/}
-            {/*        size="lg"*/}
-            {/*        className="w-full font-semibold"*/}
-            {/*        disabled={true}*/}
-            {/*        variant="secondary"*/}
-            {/*    >*/}
-            {/*        Class Full*/}
-            {/*    </Button>*/}
-            {/*) : (*/}
-            {/*    <Link*/}
-            {/*        to={targetPath || "#"}*/}
-            {/*        className="w-full block"*/}
-            {/*    >*/}
-            {/*        <Button*/}
-            {/*            size="lg"*/}
-            {/*            className="w-full font-semibold"*/}
-            {/*            variant="default"*/}
-            {/*        >*/}
-            {/*            Join Class*/}
-            {/*        </Button>*/}
-            {/*    </Link>*/}
-            {/*)}*/}
-
-            {/*<Link*/}
-            {/*    to={targetPath || "#"}*/}
-            {/*    disabled={isFull}*/}
-            {/*    asChild // Tells Refine to step aside and let Shadcn render the node*/}
-            {/*>*/}
-            {/*    <Button*/}
-            {/*        size="lg"*/}
-            {/*        className="w-full font-semibold"*/}
-            {/*        disabled={isFull}*/}
-            {/*        variant={isFull ? "secondary" : "default"}*/}
-            {/*    >*/}
-            {/*        {isFull ? "Class Full" : "Join Class"}*/}
-            {/*    </Button>*/}
-            {/*</Link>*/}
-
         </Card>
 
       <Card className="hover:shadow-md transition-shadow">

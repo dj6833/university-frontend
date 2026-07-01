@@ -339,7 +339,6 @@ function App() {
                     <Route path="create/:id" element={<EnrollmentsCreate />} />
                     <Route path="join" element={<EnrollmentsJoin />} />
                     <Route path="confirm" element={<EnrollmentConfirm />} />
-                    {/*<Route path="recommendations" element={<RecommendedClassList />} />*/}
                   </Route>
 
                   <Route path="classes">

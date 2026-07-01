@@ -162,9 +162,6 @@ const SubjectsShow = () => {
         accessorKey: "role",
         size: 140,
         header: () => <p className="column-title">Role</p>,
-        // cell: ({ getValue }) => (
-        //   <Badge variant="secondary">{getValue<string>()}</Badge>
-        // ),
         cell: ({ getValue }) => {
           const role = getValue<string>();
           const displayLabel = UI_LABELS[role as keyof typeof UI_LABELS] || role;

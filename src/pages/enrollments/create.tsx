@@ -27,7 +27,6 @@ const EnrollmentsCreate = () => {
   const { id } = useParams();
   const targetClassId = Number(id) || 0;
 
-  // Retrieve the target class data payload
   const { query: classQuery } = useOne({
     resource: "classes",
     id: targetClassId,
@@ -39,7 +38,6 @@ const EnrollmentsCreate = () => {
   const classDetails = classQuery.data?.data ?? null;
   const isClassLoading = classQuery.isLoading;
 
-  // Initialize the native Refine headless hook form lifecycle configuration
   const form = useForm<BaseRecord, HttpError, EnrollmentFormValues>({
     resolver: zodResolver(enrollmentSchema),
     refineCoreProps: {
@@ -81,7 +79,6 @@ const EnrollmentsCreate = () => {
 
         <Separator />
 
-        {/* 🌟 Parent container constraints removed to let the card stretch to full width */}
         <div className="my-4 w-full">
           {isClassLoading || !classDetails ? (
               <div className="space-y-4 py-2">
@@ -102,28 +99,18 @@ const EnrollmentsCreate = () => {
 
                   <Card className="details-card">
                     <div>
-                      {/* 🌟 PERFECT REPLICATION: Restores your native details-header wrapper and structure */}
                       <div className="details-header">
                         <div>
-                          {/* Uses your exact system typography tags and spacing layout keys */}
                           <CardTitle>You are joining class</CardTitle>
                           <h1>{classDetails.name}</h1>
                         </div>
 
-                        {/*
-                             🌟 THE ALIGNMENT SECRET:
-                            Keeping this structural div layout side-by-side preserves the flex balance
-                            of your stylesheet, snapping the h1 title perfectly back to the left edge!
-                          */}
                         <div className="flex items-center gap-2">
-                          {/* Kept empty to satisfy your global CSS layout flex engine rules */}
                         </div>
                       </div>
 
-                      {/* Restored your exact nested row elements for Department, Subject, and Lecturer */}
                       <div className="details-grid flex flex-row flex-wrap gap-x-12 gap-y-6 items-start">
 
-                        {/* 1. Department Column */}
                         <div className="department flex flex-col leading-normal min-w-[200px] max-w-xs">
                           <p>🏛️ Department</p>
                           <div>
@@ -132,7 +119,6 @@ const EnrollmentsCreate = () => {
                           </div>
                         </div>
 
-                        {/* 2. Subject Column */}
                         <div className="subject flex flex-col leading-normal min-w-[200px] max-w-xs">
                           <p>📚 Subject</p>
                           <div>
@@ -141,7 +127,6 @@ const EnrollmentsCreate = () => {
                           </div>
                         </div>
 
-                        {/* 3. Lecturer Column */}
                         <div className="instructor flex flex-col leading-normal min-w-[200px] max-w-xs">
                           <p>👨‍🏫 Lecturer</p>
                           <div>
@@ -157,13 +142,11 @@ const EnrollmentsCreate = () => {
 
                     <Separator />
 
-                    {/* Expectations Panel styled via your native .join class selectors */}
                     <div className="join space-y-4">
                       <h2>📋 Expectations & Guidelines</h2>
 
                       <div className="space-y-4 mt-2">
 
-                        {/* Bullet Point 1 */}
                         <div className="flex items-start gap-3">
                           <span className="text-base font-bold text-slate-400 select-none mt-0.5">•</span>
                           <p className="m-0 leading-relaxed">
@@ -171,7 +154,6 @@ const EnrollmentsCreate = () => {
                           </p>
                         </div>
 
-                        {/* Bullet Point 2 */}
                         <div className="flex items-start gap-3">
                           <span className="text-base font-bold text-slate-400 select-none mt-0.5">•</span>
                           <p className="m-0 leading-relaxed">
@@ -179,7 +161,6 @@ const EnrollmentsCreate = () => {
                           </p>
                         </div>
 
-                        {/* Bullet Point 3 */}
                         <div className="flex items-start gap-3">
                           <span className="text-base font-bold text-slate-400 select-none mt-0.5">•</span>
                           <p className="m-0 leading-relaxed">
@@ -190,7 +171,6 @@ const EnrollmentsCreate = () => {
                       </div>
                     </div>
 
-                    {/* Your full-width primary submission button element wrapper */}
                     <Button
                         type="submit"
                         size="lg"
