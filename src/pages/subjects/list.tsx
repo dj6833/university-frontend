@@ -20,8 +20,9 @@ import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
 import { DataTable } from "@/components/refine-ui/data-table/data-table";
 import { ShowButton } from "@/components/refine-ui/buttons/show";
 
-import { Subject } from "@/types";
+import { Subject, Department } from "@/types";
 import { DEPARTMENT_OPTIONS } from "@/constants";
+import {useList} from "@refinedev/core";
 
 const SubjectListPage = () => {
   useDocumentTitle(`Subjects ${APP_TITLE_SUFFIX}`);
@@ -84,6 +85,15 @@ const SubjectListPage = () => {
     []
   );
 
+    const { query: departmentsQuery } = useList<Department>({
+        resource: "departments",
+        pagination: {
+            pageSize: 100,
+        },
+    });
+
+    const departments = departmentsQuery.data?.data || [];
+
   const departmentFilters =
     selectedDepartment === "all"
       ? []
@@ -134,7 +144,7 @@ const SubjectListPage = () => {
       <h1 className="page-title">Subjects</h1>
 
             <div className="intro-row">
-                <p>Quick access to essential metrics and management tools.</p>
+                <p>Directory of subjects available to students</p>
 
                 <div className="actions-row">
                     <div className="search-field">
@@ -159,11 +169,11 @@ const SubjectListPage = () => {
 
                             <SelectContent>
                 <SelectItem value="all">All Departments</SelectItem>
-                {DEPARTMENT_OPTIONS.map((department) => (
-                  <SelectItem key={department.value} value={department.value}>
-                                        {department.label}
-                                    </SelectItem>
-                                ))}
+                            {departments.map((department) => (
+                                <SelectItem key={department.id} value={department.name}>
+                                    {department.name}
+                                </SelectItem>
+                            ))}
                             </SelectContent>
                         </Select>
 

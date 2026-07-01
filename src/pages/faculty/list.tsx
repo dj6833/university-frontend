@@ -1,5 +1,5 @@
 import { useDocumentTitle } from "@refinedev/react-router";
-import {APP_TITLE_SUFFIX} from "@/constants";
+import {APP_TITLE_SUFFIX, UI_LABELS} from "@/constants";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
@@ -58,7 +58,14 @@ const FacultyList = () => {
         accessorKey: "role",
         size: 120,
         header: () => <p className="column-title">Role</p>,
-        cell: ({ getValue }) => <Badge>{getValue<string>()}</Badge>,
+        //cell: ({ getValue }) => <Badge>{getValue<string>()}</Badge>,
+        cell: ({ getValue }) => {
+          const role = getValue<string>();
+          const displayLabel = UI_LABELS[role as keyof typeof UI_LABELS] || role;
+          return (
+              <Badge>{displayLabel}</Badge>
+          );
+        }
       },
       {
         id: "details",

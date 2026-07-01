@@ -1,5 +1,5 @@
 import { useDocumentTitle } from "@refinedev/react-router";
-import {APP_TITLE_SUFFIX} from "@/constants";
+import {APP_TITLE_SUFFIX, UI_LABELS} from "@/constants";
 import { useMemo } from "react";
 import { useLink, useList } from "@refinedev/core";
 import {
@@ -156,7 +156,7 @@ const Dashboard = () => {
       accent: "text-blue-600",
     },
     {
-      label: "Teachers",
+      label: "Lecturers",
       value: users.filter((user) => user.role === "teacher").length,
       icon: GraduationCap,
       accent: "text-emerald-600",
@@ -186,6 +186,11 @@ const Dashboard = () => {
       accent: "text-rose-600",
     },
   ];
+
+  const chartData = usersByRole.map((item) => ({
+    ...item,
+    role: UI_LABELS[item.role as keyof typeof UI_LABELS] || item.role,
+  }));
 
     return (
     <div className="space-y-6">
@@ -230,18 +235,18 @@ const Dashboard = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    dataKey="total"
-                    nameKey="role"
-                    data={usersByRole}
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={3}
+                      dataKey="total"
+                      nameKey="role"
+                      data={chartData}
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={3}
                   >
-                    {usersByRole.map((entry, index) => (
-                      <Cell
-                        key={`${entry.role}-${index}`}
-                        fill={roleColors[index % roleColors.length]}
-                      />
+                    {chartData.map((entry, index) => (
+                        <Cell
+                            key={`cell-${index}`}
+                            fill={roleColors[index % roleColors.length]}
+                        />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -250,18 +255,18 @@ const Dashboard = () => {
             </div>
             <div className="flex flex-wrap gap-2">
               {usersByRole.map((entry, index) => (
-                <span
-                  key={entry.role}
-                  className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs font-medium"
-                >
                   <span
-                    className="h-2 w-2 rounded-full"
-                    style={{
-                      backgroundColor:
-                        roleColors[index % roleColors.length],
-                    }}
+                      key={entry.role}
+                      className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs font-medium"
+                  >
+                  <span
+                      className="h-2 w-2 rounded-full"
+                      style={{
+                        backgroundColor:
+                            roleColors[index % roleColors.length],
+                      }}
                   />
-                  {entry.role} · {entry.total}
+                  {UI_LABELS[entry.role as keyof typeof UI_LABELS] || entry.role} · {entry.total}
                 </span>
               ))}
             </div>
@@ -284,14 +289,14 @@ const Dashboard = () => {
           </Card>
           <Card className="hover:shadow-md transition-shadow">
             <CardHeader>
-              <CardTitle>New Teachers (last 5)</CardTitle>
+              <CardTitle>New Lecturers (last 5)</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-semibold">
                 {newestTeachers.length}
               </div>
               <p className="text-sm text-muted-foreground">
-                Most recent teachers added
+                Most recent lecturers added
               </p>
             </CardContent>
           </Card>
@@ -370,7 +375,7 @@ const Dashboard = () => {
                     <p className="text-sm font-medium">{item.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {item.subject?.name ?? "No subject"} ·{" "}
-                      {item.teacher?.name ?? "No teacher"}
+                      {item.teacher?.name ?? "No lecturer"}
                     </p>
                   </div>
                 </div>
@@ -382,12 +387,12 @@ const Dashboard = () => {
 
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader>
-            <CardTitle>Newest Teachers</CardTitle>
+            <CardTitle>Newest Lecturers</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {newestTeachers.length === 0 && (
               <p className="text-sm text-muted-foreground">
-                No recent teachers.
+                No recent lecturers.
               </p>
             )}
             {newestTeachers.map((teacher, index) => (

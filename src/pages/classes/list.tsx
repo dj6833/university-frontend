@@ -108,7 +108,7 @@ const ClassesList = () => {
                 id: "teacher",
                 accessorKey: "teacher.name",
         size: 200,
-                header: () => <p className="column-title">Teacher</p>,
+                header: () => <p className="column-title">Lecturer</p>,
         cell: ({ getValue }) => {
           const teacherName = getValue<string>();
 
@@ -298,10 +298,10 @@ const ClassesList = () => {
     return (
         <ListView>
             <Breadcrumb />
-      <h1 className="page-title">Classes</h1>
+      <h1 className="page-title">All Classes</h1>
 
             <div className="intro-row">
-        <p>Quick access to essential metrics and management tools.</p>
+        <p>Explore which classes are available at our University</p>
 
                 <div className="actions-row">
                     <div className="search-field">
@@ -337,7 +337,7 @@ const ClassesList = () => {
                             </SelectTrigger>
 
                             <SelectContent>
-                <SelectItem value="all">All Teachers</SelectItem>
+                <SelectItem value="all">All Lecturers</SelectItem>
                 {teachers.map((teacher) => (
                   <SelectItem key={teacher.id} value={teacher.name}>
                     {teacher.name}

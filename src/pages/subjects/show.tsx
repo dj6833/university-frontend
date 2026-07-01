@@ -1,5 +1,5 @@
 import { useDocumentTitle } from "@refinedev/react-router";
-import {APP_TITLE_SUFFIX} from "@/constants";
+import {APP_TITLE_SUFFIX, UI_LABELS} from "@/constants";
 import { useLink, useShow } from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
 import { ColumnDef } from "@tanstack/react-table";
@@ -75,7 +75,7 @@ const SubjectsShow = () => {
         id: "teacher",
         accessorKey: "teacher",
         size: 220,
-        header: () => <p className="column-title">Teacher</p>,
+        header: () => <p className="column-title">Lecturer</p>,
         cell: ({ row }) => {
           const teacher = row.original.teacher;
           if (!teacher) {
@@ -162,9 +162,13 @@ const SubjectsShow = () => {
         accessorKey: "role",
         size: 140,
         header: () => <p className="column-title">Role</p>,
-        cell: ({ getValue }) => (
-          <Badge variant="secondary">{getValue<string>()}</Badge>
-        ),
+        cell: ({ getValue }) => {
+          const role = getValue<string>();
+          const displayLabel = UI_LABELS[role as keyof typeof UI_LABELS] || role;
+          return (
+              <Badge variant="secondary">{displayLabel}</Badge>
+          );
+        }
       },
       {
         id: "details",
@@ -307,7 +311,7 @@ const SubjectsShow = () => {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Teachers</CardTitle>
+            <CardTitle>Lecturers</CardTitle>
           </CardHeader>
           <CardContent>
             <DataTable table={teachersTable} paginationVariant="simple" />

@@ -139,7 +139,7 @@ const DepartmentsList = () => {
       <h1 className="page-title">Departments</h1>
 
       <div className="intro-row">
-        <p>Quick access to essential metrics and management tools.</p>
+        <p>Manage and review our University Departments</p>
 
         <div className="actions-row">
           <div className="search-field">

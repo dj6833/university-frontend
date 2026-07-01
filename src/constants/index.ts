@@ -59,6 +59,12 @@ export const CLASS_CAPACITY_CONFIG = {
     ALMOST_FULL_PERCENTAGE: 20, // The percentage threshold below which a class flags an "Almost Full" warning state
 } as const;
 
+export const UI_LABELS = {
+    [USER_ROLES.TEACHER]: "Lecturer",
+    [USER_ROLES.STUDENT]: "Student",
+    [USER_ROLES.ADMIN]: "Administrator",
+} as const;
+
 const getEnvVar = (key: string): string => {
     const value = import.meta.env[key];
     if (!value) {

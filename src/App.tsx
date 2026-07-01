@@ -40,7 +40,7 @@ import DepartmentsCreate from "./pages/departments/create";
 import DepartmentShow from "./pages/departments/show";
 import FacultyList from "./pages/faculty/list";
 import FacultyShow from "./pages/faculty/show";
-import EnrolmentList from "@/pages/enrollments/list.tsx";
+import EnrolmentList from  "@/pages/enrollments/list";
 import EnrollmentsCreate from "./pages/enrollments/create";
 import EnrollmentsJoin from "./pages/enrollments/join";
 import EnrollmentConfirm from "./pages/enrollments/confirm";
@@ -224,16 +224,6 @@ function App() {
                   },
                 },
                 {
-                  name: "subjects",
-                  list: "/subjects",
-                  create: "/subjects/create",
-                  show: "/subjects/show/:id",
-                  meta: {
-                    label: "Subjects",
-                    icon: <BookOpen />,
-                  },
-                },
-                {
                   name: "departments",
                   list: "/departments",
                   show: "/departments/show/:id",
@@ -241,6 +231,16 @@ function App() {
                   meta: {
                     label: "Departments",
                     icon: <Building2 />,
+                  },
+                },
+                {
+                  name: "subjects",
+                  list: "/subjects",
+                  create: "/subjects/create",
+                  show: "/subjects/show/:id",
+                  meta: {
+                    label: "Subjects",
+                    icon: <BookOpen />,
                   },
                 },
                 {
@@ -255,7 +255,7 @@ function App() {
                 {
                   name: "enrollments",
                   list: "/enrollments",
-                  // create: "/enrollments/create",
+                  create: "/enrollments/create/:id",
                   meta: {
                     label: "My Classes",
                     icon: <ClipboardCheck />,
@@ -273,11 +273,11 @@ function App() {
                 },
                 {
                   name: "class-recommendations",
-                  list: "/classes/recommendations", // Keep your working file path URL intact
+                  list: "/classes/recommendations",
                   meta: {
-                    label: "Recommended for You",
-                    parent: "classes", // 🔗 Natively links it under the 'All Classes' breadcrumb group [INDEX]!
-                    hide: true,        // Hides it from clogging your left sidebar menu list [INDEX]
+                    label: "Recommended Classes",
+                    parent: "classes",
+                    hide: true, //don't show in sidebar
                   },
                 },
               ]}
@@ -336,10 +336,9 @@ function App() {
 
                   <Route path="enrollments">
                     <Route index element={<EnrolmentList />} />
-                    <Route path="create" element={<EnrollmentsCreate />} />
+                    <Route path="create/:id" element={<EnrollmentsCreate />} />
                     <Route path="join" element={<EnrollmentsJoin />} />
                     <Route path="confirm" element={<EnrollmentConfirm />} />
-                    {/*<Route path="recommendations" element={<RecommendedClassList />} />*/}
                   </Route>
 
                   <Route path="classes">

@@ -106,6 +106,7 @@ export type ClassDetails = {
     status: "active" | "inactive";
     capacity: number;
     spacesLeft: number;
+    enrolledAlready: boolean;
     courseCode: string;
     courseName: string;
     bannerUrl?: string;

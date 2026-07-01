@@ -1,177 +1,190 @@
-/*
-page not linked to in app, likely will be removed once user can join classes through a better method
- */
 import { useDocumentTitle } from "@refinedev/react-router";
-import {APP_TITLE_SUFFIX} from "@/constants";
+import { APP_TITLE_SUFFIX } from "@/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm } from "@refinedev/react-hook-form";
+import { useBack, useOne, type BaseRecord, type HttpError } from "@refinedev/core";
+import { useParams } from "react-router";
 import * as z from "zod";
-import { useCreate, useGetIdentity, useList } from "@refinedev/core";
-import { useNavigate } from "react-router";
 
-import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
 import { CreateView } from "@/components/refine-ui/views/create-view";
+import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import {Card, CardTitle} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {ClassDetails, User} from "@/types";
+import { Form, FormField } from "@/components/ui/form";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const enrollSchema = z.object({
-  classId: z.coerce.number().min(1, "Class is required"),
+// Core Form Validation Schema
+const enrollmentSchema = z.object({
+  classId: z.number().positive("Valid Class ID is required"),
 });
-
-type EnrollFormValues = z.infer<typeof enrollSchema>;
+type EnrollmentFormValues = z.infer<typeof enrollmentSchema>;
 
 const EnrollmentsCreate = () => {
-  useDocumentTitle(`Enrol in a Class ${APP_TITLE_SUFFIX}`);
-  const navigate = useNavigate();
-  const {
-    mutateAsync: createEnrollment,
-    mutation: { isPending },
-  } = useCreate();
-  const { data: currentUser } = useGetIdentity<User>();
+  useDocumentTitle(`Join a class ${APP_TITLE_SUFFIX}`);
+  const back = useBack();
 
-  const { query: classesQuery } = useList<ClassDetails>({
+  const { id } = useParams();
+  const targetClassId = Number(id) || 0;
+
+  const { query: classQuery } = useOne({
     resource: "classes",
-    pagination: {
-      pageSize: 100,
+    id: targetClassId,
+    queryOptions: {
+      enabled: targetClassId > 0,
     },
   });
 
-  const classes = classesQuery.data?.data ?? [];
-  const classesLoading = classesQuery.isLoading;
+  const classDetails = classQuery.data?.data ?? null;
+  const isClassLoading = classQuery.isLoading;
 
-  const form = useForm<EnrollFormValues>({
-    resolver: zodResolver(enrollSchema),
-    defaultValues: {
-      classId: 0,
-    },
-  });
-
-  const selectedClassId = form.watch("classId");
-
-  const onSubmit = async (values: EnrollFormValues) => {
-    if (!currentUser?.id) return;
-
-    const response = await createEnrollment({
+  const form = useForm<BaseRecord, HttpError, EnrollmentFormValues>({
+    resolver: zodResolver(enrollmentSchema),
+    refineCoreProps: {
       resource: "enrollments",
-      values: {
-        classId: values.classId,
-        studentId: currentUser.id,
-      },
-    });
+      action: "create",
+      redirect: "list",
+    },
+    defaultValues: {
+      classId: targetClassId,
+    },
+  });
 
-    navigate("/enrollments/confirm", {
-      state: {
-        enrollment: response?.data,
-      },
-    });
+  const {
+    refineCore: { onFinish },
+    handleSubmit,
+    formState: { isSubmitting },
+    control,
+  } = form;
+
+  const onSubmit = async (values: EnrollmentFormValues) => {
+    try {
+      await onFinish(values);
+    } catch (error) {
+      console.error("Error joining class:", error);
+    }
   };
 
-  const isSubmitDisabled =
-    isPending ||
-    classesLoading ||
-    !currentUser?.id ||
-    !classes.length ||
-    !selectedClassId;
+  const teacherName = classDetails?.teacher?.name ?? "Unknown";
 
   return (
-    <CreateView className="class-view">
-      <Breadcrumb />
+      <CreateView className="class-view class-show">
+        <Breadcrumb />
 
-      <h1 className="page-title">Enrol in a Class</h1>
-      <div className="intro-row">
-        <p>Select a class to enrol as the current user.</p>
-      </div>
+        <h1 className="page-title">Confirm Enrolment</h1>
+        <div className="intro-row">
+          <p>Please review the below information before confirming your enrolment.</p>
+          <Button onClick={() => back()}>Go Back</Button>
+        </div>
 
-      <Separator />
+        <Separator />
 
-      <div className="my-4 flex items-center">
-        <Card className="class-form-card">
-          <CardHeader className="relative z-10">
-            <CardTitle className="text-2xl pb-0 font-bold text-gradient-orange">
-              Enrolment Form
-            </CardTitle>
-          </CardHeader>
+        <div className="my-4 w-full">
+          {isClassLoading || !classDetails ? (
+              <div className="space-y-4 py-2">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-10 w-full mt-6" />
+              </div>
+          ) : (
+              <Form {...form}>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <FormField
+                      control={control}
+                      name="classId"
+                      render={({ field }) => (
+                          <input type="hidden" {...field} value={targetClassId} />
+                      )}
+                  />
 
-          <Separator />
+                  <Card className="details-card">
+                    <div>
+                      <div className="details-header">
+                        <div>
+                          <CardTitle>You are joining class</CardTitle>
+                          <h1>{classDetails.name}</h1>
+                        </div>
 
-          <CardContent className="mt-7">
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-5"
-              >
-                <FormField
-                  control={form.control}
-                  name="classId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Class <span className="text-orange-600">*</span>
-                      </FormLabel>
-                      <Select
-                        onValueChange={(value) => field.onChange(Number(value))}
-                        value={field.value ? String(field.value) : ""}
-                        disabled={classesLoading}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select a class" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {classes.map((classItem) => (
-                            <SelectItem
-                              key={classItem.id}
-                              value={String(classItem.id)}
-                            >
-                              {classItem.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <div className="flex items-center gap-2">
+                        </div>
+                      </div>
 
-                <FormItem>
-                  <FormLabel>Student</FormLabel>
-                  <FormControl>
-                    <Input
-                      value={currentUser?.email ?? "Not signed in"}
-                      readOnly
-                    />
-                  </FormControl>
-                </FormItem>
+                      <div className="details-grid flex flex-row flex-wrap gap-x-12 gap-y-6 items-start">
 
-                <Button type="submit" size="lg" disabled={isSubmitDisabled}>
-                  {isPending ? "Enroling..." : "Enrol"}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-      </div>
+                        <div className="department flex flex-col leading-normal min-w-[200px] max-w-xs">
+                          <p>🏛️ Department</p>
+                          <div>
+                            <p>{classDetails?.department?.name || ""}</p>
+                            <p>{""}</p>
+                          </div>
+                        </div>
 
-    </CreateView>
+                        <div className="subject flex flex-col leading-normal min-w-[200px] max-w-xs">
+                          <p>📚 Subject</p>
+                          <div>
+                            <p>{classDetails?.subject?.name || ""}</p>
+                            <p>{""}</p>
+                          </div>
+                        </div>
+
+                        <div className="instructor flex flex-col leading-normal min-w-[200px] max-w-xs">
+                          <p>👨‍🏫 Lecturer</p>
+                          <div>
+                            <div>
+                              <p>{teacherName}</p>
+                              <p>{""}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="join space-y-4">
+                      <h2>📋 Expectations & Guidelines</h2>
+
+                      <div className="space-y-4 mt-2">
+
+                        <div className="flex items-start gap-3">
+                          <span className="text-base font-bold text-slate-400 select-none mt-0.5">•</span>
+                          <p className="m-0 leading-relaxed">
+                            <strong>Attendance Monitoring:</strong> You agree to maintain regular attendance across all scheduled lecture and seminar slots. Attendance is strictly monitored by the faculty and must not drop below expected university standards.
+                          </p>
+                        </div>
+
+                        <div className="flex items-start gap-3">
+                          <span className="text-base font-bold text-slate-400 select-none mt-0.5">•</span>
+                          <p className="m-0 leading-relaxed">
+                            <strong>Independent Study:</strong> In alignment with university guidelines, this module requires independent preparation. You are expected to complete all assigned weekly readings and review seminar briefs ahead of each scheduled session.
+                          </p>
+                        </div>
+
+                        <div className="flex items-start gap-3">
+                          <span className="text-base font-bold text-slate-400 select-none mt-0.5">•</span>
+                          <p className="m-0 leading-relaxed">
+                            <strong>Course Changes & Withdrawals:</strong> By confirming your place, you are registering an active seat on this class. Please discuss with your Lecturer before leaving a class, and refer to your university handbook for more details regarding enrolment regulations.
+                          </p>
+                        </div>
+
+                      </div>
+                    </div>
+
+                    <Button
+                        type="submit"
+                        size="lg"
+                        className="w-full font-semibold"
+                        disabled={isSubmitting}
+                    >
+                      {isSubmitting ? "Enrolling..." : "Confirm & Join Class"}
+                    </Button>
+                  </Card>
+                </form>
+              </Form>
+          )}
+        </div>
+      </CreateView>
   );
 };
 
