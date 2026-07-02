@@ -27,6 +27,10 @@ export default defineConfig({
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
     baseURL: 'https://university-system-git-staging-dj6833s-projects.vercel.app',
+    /* apply the Vercel non-prod site protection here so applied to all requests */
+    extraHTTPHeaders: {
+      'x-vercel-protection-bypass': process.env.VERCEL_AUTOMATION_BYPASS_SECRET || 'SNa9mDWNzszyoKEoQUCqHRedzAUrRfN4',
+    },
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on', // 'on-first-retry',

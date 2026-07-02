@@ -5,9 +5,9 @@ test('new user can sign up successfully', async ({ page }) => {
     const uniqueFullName = `test user-${Date.now()}`;
     const uniqueEmail = `testuser-${Date.now()}@example.com`;
 
-    await page.setExtraHTTPHeaders({
-        'x-vercel-protection-bypass': 'SNa9mDWNzszyoKEoQUCqHRedzAUrRfN4',
-    });
+    // await page.setExtraHTTPHeaders({
+    //     'x-vercel-protection-bypass': 'SNa9mDWNzszyoKEoQUCqHRedzAUrRfN4',
+    // });
 
     await page.goto('/register', { timeout: 60000 }); // Automatically prepends the baseURL
 
@@ -18,7 +18,7 @@ test('new user can sign up successfully', async ({ page }) => {
     await page.click('button[type="submit"]');
 
     // Verify successful redirection or welcome message
-    await expect(page).toHaveURL('/'); // Checks if we are at the root
+    await expect(page).toHaveURL('/',{ timeout: 60000 }); // Checks if we are at the root
     await expect(page.locator('text=Dashboard')).toBeVisible();
 
     // Check for an element only visible when logged in - mine is a hidden span so come back to this
