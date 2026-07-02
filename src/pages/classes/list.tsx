@@ -298,7 +298,7 @@ const ClassesList = () => {
     return (
         <ListView>
             <Breadcrumb />
-      <h1 className="page-title">All Classes (frontend deploy test)</h1>
+      <h1 className="page-title">All Classes</h1>
 
             <div className="intro-row">
         <p>Explore which classes are available at our University</p>
