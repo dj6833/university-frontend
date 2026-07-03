@@ -21,6 +21,8 @@ jobs:
       env:
         # This line injects the GitHub secret into the environment
         VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        # This line injects the GitHub 'vars' for the URL (Non-sensitive)
+        STAGING_URL: ${{ vars.STAGING_URL }}
       run: npx playwright test
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}

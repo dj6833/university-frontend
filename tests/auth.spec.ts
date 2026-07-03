@@ -5,10 +5,6 @@ test('new user can sign up successfully', async ({ page }) => {
     const uniqueFullName = `test user-${Date.now()}`;
     const uniqueEmail = `testuser-${Date.now()}@example.com`;
 
-    // await page.setExtraHTTPHeaders({
-    //     'x-vercel-protection-bypass': 'SNa9mDWNzszyoKEoQUCqHRedzAUrRfN4',
-    // });
-
     await page.goto('/register', { timeout: 60000 }); // Automatically prepends the baseURL
 
     // Fill out the registration form
