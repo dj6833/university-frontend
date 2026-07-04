@@ -17,6 +17,23 @@ jobs:
       run: npm ci
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
+    - name: Wake up Render Staging
+      timeout-minutes: 3
+      run: |
+        for i in {1..20}; do
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ vars.STAGING_URL }}/api/health/${{ secrets.HEALTH_CHECK_URL_SLUG }}")
+          if [ "$STATUS" == "200" ]; then
+            echo "✅ Staging is awake!"
+            exit 0
+          fi
+          echo "⏳ Status $STATUS (Attempt $i/20). Waiting 5s for Render..."
+          sleep 5
+        done
+        echo "❌ Staging failed to wake up."
+        exit 1
+
+
+
     - name: Run Playwright tests
       env:
         # This line injects the GitHub secret into the environment
