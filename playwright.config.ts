@@ -27,7 +27,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
-    baseURL: process.env.STAGING_URL || '',
+    baseURL: process.env.STAGING_FRONTEND_URL || '',
     /* apply the Vercel non-prod site protection here so applied to all requests */
     extraHTTPHeaders: {
       'x-vercel-protection-bypass': process.env.VERCEL_AUTOMATION_BYPASS_SECRET || '',

@@ -2,8 +2,6 @@ name: Playwright Tests
 on:
   push:
     branches: [ staging ] # Test the staging environment after every push ('main' was proposed here also but I don't see why this would be necessary, my tests are designed to run on staging only, not on prod!?)
-  pull_request:
-    branches: [ staging ] # Test the proposed changes BEFORE they hit staging ('main' also removed as per above comment) - I also don't get this, as you raise a PR targeting Staging, but running tests at this point on staging won't reflect the proposed code change?! But will leave here for now...
 jobs:
   test:
     timeout-minutes: 60
@@ -21,7 +19,7 @@ jobs:
       timeout-minutes: 3
       run: |
         for i in {1..20}; do
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ vars.STAGING_URL }}/api/health/${{ secrets.HEALTH_CHECK_URL_SLUG }}")
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ vars.STAGING_BACKEND_URL }}/api/health/${{ secrets.HEALTH_CHECK_URL_SLUG }}")
           if [ "$STATUS" == "200" ]; then
             echo "✅ Staging is awake!"
             exit 0
@@ -39,7 +37,7 @@ jobs:
         # This line injects the GitHub secret into the environment
         VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         # This line injects the GitHub 'vars' for the URL (Non-sensitive)
-        STAGING_URL: ${{ vars.STAGING_URL }}
+        STAGING_FRONTEND_URL: ${{ vars.STAGING_FRONTEND_URL }}
       run: npx playwright test
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
