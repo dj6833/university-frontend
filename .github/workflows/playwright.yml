@@ -1,0 +1,47 @@
+name: Playwright Tests
+on:
+  push:
+    branches: [ staging ] # Test the staging environment after every push ('main' was proposed here also but I don't see why this would be necessary, my tests are designed to run on staging only, not on prod!?)
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+    - name: Install dependencies
+      run: npm ci
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+    - name: Wake up Render Staging
+      timeout-minutes: 3
+      run: |
+        for i in {1..20}; do
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ vars.STAGING_BACKEND_URL }}/api/health/${{ secrets.HEALTH_CHECK_URL_SLUG }}")
+          if [ "$STATUS" == "200" ]; then
+            echo "✅ Staging is awake!"
+            exit 0
+          fi
+          echo "⏳ Status $STATUS (Attempt $i/20). Waiting 5s for Render..."
+          sleep 5
+        done
+        echo "❌ Staging failed to wake up."
+        exit 1
+
+
+
+    - name: Run Playwright tests
+      env:
+        # This line injects the GitHub secret into the environment
+        VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        # This line injects the GitHub 'vars' for the URL (Non-sensitive)
+        STAGING_FRONTEND_URL: ${{ vars.STAGING_FRONTEND_URL }}
+      run: npx playwright test
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30
