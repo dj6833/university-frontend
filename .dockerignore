@@ -30,5 +30,8 @@
 **/values.dev.yaml
 **/build
 **/dist
+**/tests
+**/playwright-report
+**/test-results
 LICENSE
 README.md
