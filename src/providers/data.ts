@@ -136,6 +136,67 @@ const options: CreateDataProviderOptions = {
   
 };
 
-const { dataProvider } = createDataProvider(BACKEND_BASE_URL, options);
+// Generate your core base provider using your configuration options
+const { dataProvider: baseDataProvider } = createDataProvider(BACKEND_BASE_URL, options);
 
+// 1. Session flag tracking ensures the loop only fires once per browser instance tab
+let isWarmupTriggered = false;
+
+const triggerInfrastructureWarmup = (): void => {
+  if (isWarmupTriggered) return;
+  isWarmupTriggered = true;
+
+  console.log("Refine Core Network Layer: Dispatched backend infrastructure warmup sequence.");
+
+  // Cleanly extract the base domain and append the health path securely
+  const baseApiUrl = BACKEND_BASE_URL.replace(/\/$/, "");
+  const targetWarmupUrl = `${baseApiUrl}/health/warmup`;
+
+  console.log(`Routing warmup execution directly to backend gateway: ${targetWarmupUrl}`);
+
+  fetch(targetWarmupUrl, {
+    method: "GET",
+    mode: "no-cors"
+  }).catch(() => {
+    // Safely swallow initial connection drops
+  });
+};
+
+// 2. Wrap the base provider methods to cleanly execute the initialization trigger
+const dataProvider = {
+  ...baseDataProvider,
+
+  getList: async (params: any) => {
+    triggerInfrastructureWarmup();
+    return baseDataProvider.getList(params);
+  },
+
+  getOne: async (params: any) => {
+    triggerInfrastructureWarmup();
+    return baseDataProvider.getOne(params);
+  },
+
+  create: async (params: any) => {
+    triggerInfrastructureWarmup();
+    return baseDataProvider.create(params);
+  },
+
+  update: async (params: any) => {
+    triggerInfrastructureWarmup();
+    return baseDataProvider.update(params);
+  },
+
+  deleteOne: async (params: any) => {
+    triggerInfrastructureWarmup();
+    return baseDataProvider.deleteOne(params);
+  },
+
+  // Ensures any non-CRUD custom routing triggers also evaluate container readiness
+  custom: async (params: any) => {
+    triggerInfrastructureWarmup();
+    return baseDataProvider.custom!(params);
+  }
+};
+
+// 3. Export the custom wrapper object so App.tsx loads it automatically without changes
 export { dataProvider };
