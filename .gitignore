@@ -17,6 +17,10 @@ dist-ssr
 .env
 .env.local
 
+# Playwright test artifacts
+playwright-report
+test-results
+
 # Editor directories and files
 
 .vscode/_
