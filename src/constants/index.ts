@@ -75,7 +75,7 @@ const getEnvVar = (key: string): string => {
 export const CLOUDINARY_UPLOAD_URL = getEnvVar("VITE_CLOUDINARY_UPLOAD_URL");
 export const CLOUDINARY_CLOUD_NAME = getEnvVar("VITE_CLOUDINARY_CLOUD_NAME");
 export const BACKEND_BASE_URL = getEnvVar("VITE_BACKEND_BASE_URL");
-
+export const BACKEND_ANALYSIS_SERVICE_URL = getEnvVar("VITE_BACKEND_ANALYSIS_SERVICE_URL");
 
 export const APP_TITLE_SUFFIX = import.meta.env.VITE_APP_TITLE_SUFFIX;
 export const BASE_URL = import.meta.env.VITE_API_URL;
