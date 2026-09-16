@@ -46,6 +46,8 @@ import EnrollmentsJoin from "./pages/enrollments/join";
 import EnrollmentConfirm from "./pages/enrollments/confirm";
 import RecommendedClassList from "@/pages/classes/recommendations.tsx";
 
+import { InfrastructureMonitor } from "./components/InfrastructureMonitor";
+
 /*
 Globally force all browser fetch requests to include cookies, ensuring our session cookie is passed
 */
@@ -353,6 +355,7 @@ function App() {
               <Toaster />
               <RefineKbar />
               <UnsavedChangesNotifier />
+              <InfrastructureMonitor />
               {/*<DocumentTitleHandler />*/}
               {/*<DocumentTitleHandler*/}
               {/*    handler={({ resource, action }) => {*/}

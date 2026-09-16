@@ -136,67 +136,40 @@ const options: CreateDataProviderOptions = {
   
 };
 
-// Generate your core base provider using your configuration options
-const { dataProvider: baseDataProvider } = createDataProvider(BACKEND_BASE_URL, options);
+const { dataProvider } = createDataProvider(BACKEND_BASE_URL, options);
 
-// 1. Session flag tracking ensures the loop only fires once per browser instance tab
-let isWarmupTriggered = false;
+let lastWarmupTimestamp = 0;
 
 const triggerInfrastructureWarmup = (): void => {
-  if (isWarmupTriggered) return;
-  isWarmupTriggered = true;
+  const currentTimestamp = Date.now();
+  const tenMinutesInMs = 10 * 60 * 1000;
+  const timeSinceLastPing = currentTimestamp - lastWarmupTimestamp;
 
-  console.log("Refine Core Network Layer: Dispatched backend infrastructure warmup sequence.");
-
-  // Cleanly extract the base domain and append the health path securely
-  const baseApiUrl = BACKEND_BASE_URL.replace(/\/$/, "");
-  const targetWarmupUrl = `${baseApiUrl}/health/warmup`;
-
-  console.log(`Routing warmup execution directly to backend gateway: ${targetWarmupUrl}`);
-
-  fetch(targetWarmupUrl, {
-    method: "GET",
-    mode: "no-cors"
-  }).catch(() => {
-    // Safely swallow initial connection drops
-  });
-};
-
-// 2. Wrap the base provider methods to cleanly execute the initialization trigger
-const dataProvider = {
-  ...baseDataProvider,
-
-  getList: async (params: any) => {
-    triggerInfrastructureWarmup();
-    return baseDataProvider.getList(params);
-  },
-
-  getOne: async (params: any) => {
-    triggerInfrastructureWarmup();
-    return baseDataProvider.getOne(params);
-  },
-
-  create: async (params: any) => {
-    triggerInfrastructureWarmup();
-    return baseDataProvider.create(params);
-  },
-
-  update: async (params: any) => {
-    triggerInfrastructureWarmup();
-    return baseDataProvider.update(params);
-  },
-
-  deleteOne: async (params: any) => {
-    triggerInfrastructureWarmup();
-    return baseDataProvider.deleteOne(params);
-  },
-
-  // Ensures any non-CRUD custom routing triggers also evaluate container readiness
-  custom: async (params: any) => {
-    triggerInfrastructureWarmup();
-    return baseDataProvider.custom!(params);
+  if (lastWarmupTimestamp !== 0 && timeSinceLastPing < tenMinutesInMs) {
+    return;
   }
+
+  lastWarmupTimestamp = currentTimestamp;
+
+  console.log("Refine Core Network Layer: System status validation triggered.");
+
+  // Broadcast the signal. The UI component will catch this and fire the 3 parallel fetches.
+  const event = new CustomEvent("infrastructure-check-start");
+  window.dispatchEvent(event);
 };
 
-// 3. Export the custom wrapper object so App.tsx loads it automatically without changes
+const wrapMethod = (originalMethod: Function | undefined) => {
+  if (!originalMethod) return undefined;
+  return async (...args: any[]) => {
+    triggerInfrastructureWarmup();
+    return originalMethod(...args);
+  };
+};
+
+dataProvider.getList = wrapMethod(dataProvider.getList) as any;
+dataProvider.getOne = wrapMethod(dataProvider.getOne) as any;
+dataProvider.create = wrapMethod(dataProvider.create) as any;
+dataProvider.deleteOne = wrapMethod(dataProvider.deleteOne) as any;
+dataProvider.custom = wrapMethod(dataProvider.custom) as any;
+
 export { dataProvider };
