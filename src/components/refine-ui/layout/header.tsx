@@ -142,41 +142,48 @@ const UserDropdown = () => {
                     )}
                     {user?.role && (
                         <span className="mt-2 inline-flex items-center rounded-sm bg-muted px-2 py-0.5 text-xs font-semibold uppercase text-muted-foreground">
-              {user.role}
-            </span>
+                    {user.role}
+                </span>
                     )}
                 </div>
                 <DropdownMenuSeparator />
 
-                {/* 1. System Environment Status Diagnostic Trigger */}
+                {/* ========================================== */}
+                {/* 🚀 1. UPDATED "CHECK SITE SERVICES" ITEM   */}
+                {/* ========================================== */}
                 <DropdownMenuItem
                     onClick={() => {
                         triggerManualServiceCheck();
                     }}
-                    className="cursor-pointer"
+                    className="cursor-pointer flex items-center"
                 >
+                    {/* Standardised lucide icon scale and right margin spacing */}
                     <ActivityIcon className="text-muted-foreground w-4 h-4 mr-2" />
-                    <span className="text-sm font-medium">Check Site Status</span>
+                    <span className="text-sm font-medium">Check Site Services</span>
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
 
-                {/* 2. Your Existing Logout Link */}
+                {/* ========================================== */}
+                {/* ⚙️ 2. PERFECTLY ALIGNED LOGOUT ITEM       */}
+                {/* ========================================== */}
                 <DropdownMenuItem
                     onClick={() => {
                         logout();
                     }}
-                    className="cursor-pointer"
+                    className="cursor-pointer flex items-center"
                 >
+                    {/* Added explicit w-4 h-4 mr-2 classes to line up exactly with row 1 */}
                     <LogOutIcon
-                        className={cn("text-destructive", "hover:text-destructive")}
+                        className={cn("w-4 h-4 mr-2 text-destructive", "hover:text-destructive")}
                     />
-                    <span className={cn("text-destructive", "hover:text-destructive")}>
-            {isLoggingOut ? "Logging out..." : "Logout"}
-          </span>
+                    <span className={cn("text-sm font-medium text-destructive", "hover:text-destructive")}>
+                {isLoggingOut ? "Logging out..." : "Logout"}
+            </span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
+
     );
 };
 

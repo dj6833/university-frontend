@@ -47,6 +47,7 @@ import EnrollmentConfirm from "./pages/enrollments/confirm";
 import RecommendedClassList from "@/pages/classes/recommendations.tsx";
 
 import { InfrastructureMonitor } from "./components/InfrastructureMonitor";
+import {evaluateInfrastructureLifespan} from "@/lib/infrastructure.ts";
 
 /*
 Globally force all browser fetch requests to include cookies, ensuring our session cookie is passed
@@ -59,6 +60,32 @@ window.fetch = async (input, init) => {
     credentials: "include",
   });
 };
+
+// ==========================================
+// NEW CHILD LAYOUT WRAPPER FOR TRIGGERING BACKEND SERVICE WARMUP
+// ==========================================
+function RefineLayoutWrapper({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+
+  // Trigger A: The Deterministic Initial Page Load
+  useEffect(() => {
+    console.log("Application Shell: Initial layout mount confirmed. Running infrastructure validation.");
+    evaluateInfrastructureLifespan(false);
+  }, []);
+
+  // Trigger B: The Active User Interaction Hook
+  useEffect(() => {
+    evaluateInfrastructureLifespan(false);
+  }, [location.pathname]);
+
+  return (
+      <>
+        {children}
+        {/* Mount the overlay widget globally right inside the routing tree */}
+        <InfrastructureMonitor />
+      </>
+  );
+}
 
 //works but uses url to determine page name, not always accurate - will attempt overriding in individual pages if necessary
 // const PageTitleUpdater = () => {
@@ -147,229 +174,230 @@ function App() {
       <RefineKbarProvider>
         <ThemeProvider>
           <DevtoolsProvider>
-            <Refine
-              dataProvider={dataProvider}
-              authProvider={authProvider}
-              notificationProvider={useNotificationProvider()}
-              routerProvider={routerProvider}
-              // DocumentTitleHandler={({ resource, action }) => {
-              //   const siteName = "University of Oakfield";
-              //
-              //   if (resource) {
-              //     // Capitalises page resource names cleanly (e.g. 'enrollments' -> 'Enrollments')
-              //     const pageName = resource.charAt(0).toUpperCase() + resource.slice(1);
-              //
-              //     // Maps actions cleanly if needed (e.g. show -> Details)
-              //     const actionLabel = action && action !== "list" ? ` | ${action}` : "";
-              //
-              //     return `${pageName}${actionLabel} - ${siteName}`;
-              //   }
-              //
-              //   return siteName;
-              // }}
+            <RefineLayoutWrapper>
+              <Refine
+                dataProvider={dataProvider}
+                authProvider={authProvider}
+                notificationProvider={useNotificationProvider()}
+                routerProvider={routerProvider}
+                // DocumentTitleHandler={({ resource, action }) => {
+                //   const siteName = "University of Oakfield";
+                //
+                //   if (resource) {
+                //     // Capitalises page resource names cleanly (e.g. 'enrollments' -> 'Enrollments')
+                //     const pageName = resource.charAt(0).toUpperCase() + resource.slice(1);
+                //
+                //     // Maps actions cleanly if needed (e.g. show -> Details)
+                //     const actionLabel = action && action !== "list" ? ` | ${action}` : "";
+                //
+                //     return `${pageName}${actionLabel} - ${siteName}`;
+                //   }
+                //
+                //   return siteName;
+                // }}
 
-              // i18nProvider={{
-              //   translate: (key: string, defaultMessage?: string) => {
-              //     // Intercept the default browser suffix rule and force your school name natively!
-              //     if (key === "documentTitle.suffix") return ` | ${schoolName}`;
-              //     if (key === "documentTitle.default") return schoolName;
-              //
-              //     // Fall back to standard defaults for any other internal framework layout text keys
-              //     return defaultMessage || key;
-              //   },
-              //   changeLocale: async () => {},
-              //   getLocale: () => "en",
-              // }}
+                // i18nProvider={{
+                //   translate: (key: string, defaultMessage?: string) => {
+                //     // Intercept the default browser suffix rule and force your school name natively!
+                //     if (key === "documentTitle.suffix") return ` | ${schoolName}`;
+                //     if (key === "documentTitle.default") return schoolName;
+                //
+                //     // Fall back to standard defaults for any other internal framework layout text keys
+                //     return defaultMessage || key;
+                //   },
+                //   changeLocale: async () => {},
+                //   getLocale: () => "en",
+                // }}
 
-              options={{
-                title: {
-                  text: "University of Oakfield",
-                  //icon: <GraduationCap className="h-6 w-6 text-indigo-600" />,
-                  icon: (
-                      <img
-                          src="/logo.png"
-                          alt="Logo"
-                          className="h-6 w-6 min-w-[24px] min-h-[24px] object-contain flex-shrink-0"
-                      />
-                  ),
-                },
-                syncWithLocation: true,
-                warnWhenUnsavedChanges: true,
-                projectId: "mG476x-8Tj0nI-6mS6lr",
-                reactQuery: {
-                  clientConfig: {
-                    defaultOptions: {
-                      queries: {
-                        retry: (failureCount, error: any) => {
-                          // Because we throw HttpError, statusCode is guaranteed to be a number
-                          const status = error?.statusCode;
+                options={{
+                  title: {
+                    text: "University of Oakfield",
+                    //icon: <GraduationCap className="h-6 w-6 text-indigo-600" />,
+                    icon: (
+                        <img
+                            src="/logo.png"
+                            alt="Logo"
+                            className="h-6 w-6 min-w-[24px] min-h-[24px] object-contain flex-shrink-0"
+                        />
+                    ),
+                  },
+                  syncWithLocation: true,
+                  warnWhenUnsavedChanges: true,
+                  projectId: "mG476x-8Tj0nI-6mS6lr",
+                  reactQuery: {
+                    clientConfig: {
+                      defaultOptions: {
+                        queries: {
+                          retry: (failureCount, error: any) => {
+                            // Because we throw HttpError, statusCode is guaranteed to be a number
+                            const status = error?.statusCode;
 
-                          if (status === 401 || status === 403) {
-                            return false; // Fail instantly for authentication and permission blocks
-                          }
+                            if (status === 401 || status === 403) {
+                              return false; // Fail instantly for authentication and permission blocks
+                            }
 
-                          return failureCount < 3; // Maintain Refine default of 3x request retries for other types of request issues
+                            return failureCount < 3; // Maintain Refine default of 3x request retries for other types of request issues
+                          },
                         },
                       },
                     },
                   },
-                },
-              }}
-              //applicationName: "University of Oakfield"
-              resources={[
+                }}
+                //applicationName: "University of Oakfield"
+                resources={[
+                    {
+                    name: "dashboard",
+                    list: "/",
+                    meta: {
+                      label: "Home",
+                      icon: <Home />,
+                    },
+                  },
                   {
-                  name: "dashboard",
-                  list: "/",
-                  meta: {
-                    label: "Home",
-                    icon: <Home />,
+                    name: "departments",
+                    list: "/departments",
+                    show: "/departments/show/:id",
+                    create: "/departments/create",
+                    meta: {
+                      label: "Departments",
+                      icon: <Building2 />,
+                    },
                   },
-                },
-                {
-                  name: "departments",
-                  list: "/departments",
-                  show: "/departments/show/:id",
-                  create: "/departments/create",
-                  meta: {
-                    label: "Departments",
-                    icon: <Building2 />,
+                  {
+                    name: "subjects",
+                    list: "/subjects",
+                    create: "/subjects/create",
+                    show: "/subjects/show/:id",
+                    meta: {
+                      label: "Subjects",
+                      icon: <BookOpen />,
+                    },
                   },
-                },
-                {
-                  name: "subjects",
-                  list: "/subjects",
-                  create: "/subjects/create",
-                  show: "/subjects/show/:id",
-                  meta: {
-                    label: "Subjects",
-                    icon: <BookOpen />,
+                  {
+                    name: "users",
+                    list: "/faculty",
+                    show: "/faculty/show/:id",
+                    meta: {
+                      label: "Staff",
+                      icon: <Users />,
+                    },
                   },
-                },
-                {
-                  name: "users",
-                  list: "/faculty",
-                  show: "/faculty/show/:id",
-                  meta: {
-                    label: "Staff",
-                    icon: <Users />,
+                  {
+                    name: "enrollments",
+                    list: "/enrollments",
+                    create: "/enrollments/create/:id",
+                    meta: {
+                      label: "My Classes",
+                      icon: <ClipboardCheck />,
+                    },
                   },
-                },
-                {
-                  name: "enrollments",
-                  list: "/enrollments",
-                  create: "/enrollments/create/:id",
-                  meta: {
-                    label: "My Classes",
-                    icon: <ClipboardCheck />,
+                  {
+                    name: "classes",
+                    list: "/classes",
+                    create: "/classes/create",
+                    show: "/classes/show/:id",
+                    meta: {
+                      label: "All Classes",
+                      icon: <GraduationCap />,
+                    },
                   },
-                },
-                {
-                  name: "classes",
-                  list: "/classes",
-                  create: "/classes/create",
-                  show: "/classes/show/:id",
-                  meta: {
-                    label: "All Classes",
-                    icon: <GraduationCap />,
+                  {
+                    name: "class-recommendations",
+                    list: "/classes/recommendations",
+                    meta: {
+                      label: "Recommended Classes",
+                      parent: "classes",
+                      hide: true, //don't show in sidebar
+                    },
                   },
-                },
-                {
-                  name: "class-recommendations",
-                  list: "/classes/recommendations",
-                  meta: {
-                    label: "Recommended Classes",
-                    parent: "classes",
-                    hide: true, //don't show in sidebar
-                  },
-                },
-              ]}
-            >
-              <Routes>
-                {/* PUBLIC ROUTES (Login / Register) */}
-                <Route
-                    element={
-                      <Authenticated
-                          key="public-routes"
-                          fallback={<Outlet />} // If NOT logged in, let them access login/register
-                      >
-                        {/* If ALREADY logged in, automatically push them to the default logged-in resource */}
-                        <NavigateToResource />
-                      </Authenticated>
-                    }
-                >
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                </Route>
-
-                {/* 2. PROTECTED PRIVATE ROUTES */}
-                <Route
-                    element={
-                      <Authenticated
-                          key="private-routes"
-                          // Todo: consider CatchAllNavigate here to call /login while preserving the return-to details in the URL
-                          // (but needs work to handle session timeout vs intentional user-logged-off behaviour)
-                          // fallback={<CatchAllNavigate to="/login" />}
-                          fallback={<Navigate to="/login" />}
-                      >
-                        <Layout>
-                          <Outlet />
-                        </Layout>
-                      </Authenticated>
-                    }
-                >
-                  <Route path="/" element={<Dashboard />} />
-
-                  <Route path="subjects">
-                    <Route index element={<SubjectsList />} />
-                    <Route path="create" element={<SubjectsCreate />} />
-                    <Route path="show/:id" element={<SubjectsShow />} />
+                ]}
+              >
+                <Routes>
+                  {/* PUBLIC ROUTES (Login / Register) */}
+                  <Route
+                      element={
+                        <Authenticated
+                            key="public-routes"
+                            fallback={<Outlet />} // If NOT logged in, let them access login/register
+                        >
+                          {/* If ALREADY logged in, automatically push them to the default logged-in resource */}
+                          <NavigateToResource />
+                        </Authenticated>
+                      }
+                  >
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
                   </Route>
 
-                  <Route path="departments">
-                    <Route index element={<DepartmentsList />} />
-                    <Route path="create" element={<DepartmentsCreate />} />
-                    <Route path="show/:id" element={<DepartmentShow />} />
+                  {/* 2. PROTECTED PRIVATE ROUTES */}
+                  <Route
+                      element={
+                        <Authenticated
+                            key="private-routes"
+                            // Todo: consider CatchAllNavigate here to call /login while preserving the return-to details in the URL
+                            // (but needs work to handle session timeout vs intentional user-logged-off behaviour)
+                            // fallback={<CatchAllNavigate to="/login" />}
+                            fallback={<Navigate to="/login" />}
+                        >
+                          <Layout>
+                            <Outlet />
+                          </Layout>
+                        </Authenticated>
+                      }
+                  >
+                    <Route path="/" element={<Dashboard />} />
+
+                    <Route path="subjects">
+                      <Route index element={<SubjectsList />} />
+                      <Route path="create" element={<SubjectsCreate />} />
+                      <Route path="show/:id" element={<SubjectsShow />} />
+                    </Route>
+
+                    <Route path="departments">
+                      <Route index element={<DepartmentsList />} />
+                      <Route path="create" element={<DepartmentsCreate />} />
+                      <Route path="show/:id" element={<DepartmentShow />} />
+                    </Route>
+
+                    <Route path="faculty">
+                      <Route index element={<FacultyList />} />
+                      <Route path="show/:id" element={<FacultyShow />} />
+                    </Route>
+
+                    <Route path="enrollments">
+                      <Route index element={<EnrolmentList />} />
+                      <Route path="create/:id" element={<EnrollmentsCreate />} />
+                      <Route path="join" element={<EnrollmentsJoin />} />
+                      <Route path="confirm" element={<EnrollmentConfirm />} />
+                    </Route>
+
+                    <Route path="classes">
+                      <Route index element={<ClassesList />} />
+                      <Route path="create" element={<ClassesCreate />} />
+                      <Route path="show/:id" element={<ClassesShow />} />
+                      <Route path="recommendations" element={<RecommendedClassList />} />
+                    </Route>
                   </Route>
+                </Routes>
 
-                  <Route path="faculty">
-                    <Route index element={<FacultyList />} />
-                    <Route path="show/:id" element={<FacultyShow />} />
-                  </Route>
+                <Toaster />
+                <RefineKbar />
+                <UnsavedChangesNotifier />
+                {/*<DocumentTitleHandler />*/}
+                {/*<DocumentTitleHandler*/}
+                {/*    handler={({ resource, action }) => {*/}
+                {/*      if (resource) {*/}
+                {/*        // Capitalises the resource name cleanly (e.g., 'subjects' -> 'Subjects')*/}
+                {/*        const pageLabel = resource.toString().charAt(0).toUpperCase() + resource.toString().slice(1);*/}
+                {/*        const subAction = action && action !== "list" ? ` | ${action}` : "";*/}
 
-                  <Route path="enrollments">
-                    <Route index element={<EnrolmentList />} />
-                    <Route path="create/:id" element={<EnrollmentsCreate />} />
-                    <Route path="join" element={<EnrollmentsJoin />} />
-                    <Route path="confirm" element={<EnrollmentConfirm />} />
-                  </Route>
-
-                  <Route path="classes">
-                    <Route index element={<ClassesList />} />
-                    <Route path="create" element={<ClassesCreate />} />
-                    <Route path="show/:id" element={<ClassesShow />} />
-                    <Route path="recommendations" element={<RecommendedClassList />} />
-                  </Route>
-                </Route>
-              </Routes>
-
-              <Toaster />
-              <RefineKbar />
-              <UnsavedChangesNotifier />
-              <InfrastructureMonitor />
-              {/*<DocumentTitleHandler />*/}
-              {/*<DocumentTitleHandler*/}
-              {/*    handler={({ resource, action }) => {*/}
-              {/*      if (resource) {*/}
-              {/*        // Capitalises the resource name cleanly (e.g., 'subjects' -> 'Subjects')*/}
-              {/*        const pageLabel = resource.toString().charAt(0).toUpperCase() + resource.toString().slice(1);*/}
-              {/*        const subAction = action && action !== "list" ? ` | ${action}` : "";*/}
-
-              {/*        return `${pageLabel}${subAction} - ${schoolName}`;*/}
-              {/*      }*/}
-              {/*      return schoolName;*/}
-              {/*    }}*/}
-              {/*/>*/}
-            </Refine>
+                {/*        return `${pageLabel}${subAction} - ${schoolName}`;*/}
+                {/*      }*/}
+                {/*      return schoolName;*/}
+                {/*    }}*/}
+                {/*/>*/}
+              </Refine>
+            </RefineLayoutWrapper>
           </DevtoolsProvider>
         </ThemeProvider>
       </RefineKbarProvider>
