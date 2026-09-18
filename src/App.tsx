@@ -2,7 +2,7 @@ import { Authenticated, Refine  } from "@refinedev/core";
 import { DevtoolsProvider } from "@refinedev/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import routerProvider, {
   DocumentTitleHandler,
@@ -64,17 +64,14 @@ window.fetch = async (input, init) => {
 // ==========================================
 // NEW CHILD LAYOUT WRAPPER FOR TRIGGERING BACKEND SERVICE WARMUP
 // ==========================================
-// 💡 THE COMPONENT DEFERRER:
 // It mounts inside the DOM layout stream safely below your context providers.
 // This guarantees Vite has finished building its chunks before it executes.
 function DeferredMonitor() {
   const location = useLocation();
-
   useEffect(() => {
     // Executes cleanly once the child framework layout finishes rendering
     evaluateInfrastructureLifespan();
   }, [location.pathname]);
-
   return <InfrastructureMonitor />;
 }
 
@@ -83,7 +80,6 @@ function RefineLayoutWrapper({ children }: { children: React.ReactNode }) {
   return (
       <>
         {children}
-        {/* 💡 Safe, deterministic mount placement */}
         <DeferredMonitor />
       </>
   );
@@ -127,7 +123,7 @@ function RefineLayoutWrapper({ children }: { children: React.ReactNode }) {
 //   useEffect(() => {
 //     const siteName = "University of Oakfield";
 //
-//     // 🌟 A small 50ms buffer ensures React has finished mounting your page text first
+//     // A small 50ms buffer ensures React has finished mounting your page text first
 //     const timeoutId = setTimeout(() => {
 //       // Direct query selector scans the active viewport for your page header
 //       const pageHeader = document.querySelector("h1");
@@ -156,14 +152,14 @@ function RefineLayoutWrapper({ children }: { children: React.ReactNode }) {
 
 // const PortalTitle = ({ collapsed }: { collapsed: boolean }) => (
 //     <div className="flex items-center gap-2 px-1 py-2 font-bold text-slate-900 select-none">
-//       {/* 🌟 THE LOGO IMAGE: Remains completely locked in place on collapse */}
+//       {/* THE LOGO IMAGE: Remains completely locked in place on collapse */}
 //       <img
 //           src="/logo.png"
 //           alt="Logo"
 //           className="h-6 w-6 object-contain flex-shrink-0"
 //       />
 //
-//       {/* 🌟 THE WORKSPACE STRING TEXT: Gracefully fades away only when collapsed */}
+//       {/* THE WORKSPACE STRING TEXT: Gracefully fades away only when collapsed */}
 //       {!collapsed && <span className="text-base tracking-tight">AcademyPortal</span>}
 //     </div>
 // );
