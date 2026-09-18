@@ -219,7 +219,7 @@ export const InfrastructureMonitor: React.FC = () => {
         <div className="fixed bottom-4 right-4 z-50 w-[calc(100vw-32px)] sm:w-[380px] p-5 bg-popover text-popover-foreground rounded-xl border border-border font-mono shadow-2xl shadow-black/20 dark:shadow-black/50 box-border">
             <div className="flex justify-between items-start border-b border-border pb-2 mb-3">
                 <h3 className="m-0 text-sm font-semibold tracking-tight text-foreground">
-                    System Environment Check
+                    System Health Check
                 </h3>
                 <button
                     onClick={handleManualHide}
@@ -234,7 +234,7 @@ export const InfrastructureMonitor: React.FC = () => {
             </div>
 
             <p className="text-[11px] text-muted-foreground m-0 mb-4 leading-relaxed">
-                This project runs on services that automatically spin down during inactivity to save resources. Please be patient while we check they are awake, this usually takes under one minute.
+                Thanks for visiting this project site. It runs on services that sleep during inactivity to save resources, so we periodically check they are awake for you. Please be patient, this can take up to a minute.
             </p>
 
             <ul className="list-none p-0 m-0 mb-5">
@@ -269,7 +269,7 @@ export const InfrastructureMonitor: React.FC = () => {
                 {isAllReady && (
                     <div className="flex flex-col gap-2.5 items-center">
                         <p className="text-xs font-semibold text-emerald-500 m-0">
-                            All systems nominal. Environment ready.
+                            All services operational
                         </p>
                         <button
                             onClick={handleManualHide}

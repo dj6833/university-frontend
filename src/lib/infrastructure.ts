@@ -2,7 +2,7 @@ type Listener = (visible: boolean, forceSticky: boolean) => void;
 const listeners = new Set<Listener>();
 
 // Configuration: 10 minutes in milliseconds
-const AUTOMATED_THROTTLE_WINDOW_MS = 2 * 60 * 1000; //10 * 60 * 1000;
+const AUTOMATED_THROTTLE_WINDOW_MS = 60 * 1000; //10 * 60 * 1000;
 
 export const infrastructureState = {
     isVisible: true,
