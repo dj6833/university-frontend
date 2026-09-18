@@ -75,7 +75,7 @@ function DeferredMonitor() {
   return <InfrastructureMonitor />;
 }
 
-// Your main layout manager stays lean and doesn't call any un-scoped hooks
+// The main layout manager stays lean and doesn't call any un-scoped hooks
 function RefineLayoutWrapper({ children }: { children: React.ReactNode }) {
   return (
       <>
