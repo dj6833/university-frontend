@@ -1,8 +1,8 @@
 type Listener = (visible: boolean, forceSticky: boolean) => void;
 const listeners = new Set<Listener>();
 
-// Configuration: 10 minutes in milliseconds
-const AUTOMATED_THROTTLE_WINDOW_MS = 60 * 1000; //10 * 60 * 1000;
+// Set the timeout window between sending warmup requests to backend services
+const WARMUP_SERVICES_WINDOW_MS = 60 * 1000; //10 * 60 * 1000;
 
 export const infrastructureState = {
     isVisible: true,
@@ -32,26 +32,24 @@ export const evaluateInfrastructureLifespan = (): void => {
     const lastPing = sessionStorage.getItem("infra_last_warmup");
     const hasBeenGreeted = sessionStorage.getItem("infra_session_greeted");
 
-    // 1. FIRST ACCESS OF THE SESSION RULE:
-    // If they haven't seen the greeting yet on this tab, force it to open wide and stay STICKY
+    // If they haven't seen the greeting yet on this browser tab, force it to open wide and stay STICKY
     if (!hasBeenGreeted) {
         sessionStorage.setItem("infra_last_warmup", currentTimestamp.toString());
         infrastructureState.openCheck(true); // true = sticky mode locked
         return;
     }
 
-    // 2. THE 10-MINUTE PERIODIC WAKEUP RULE:
-    // If they have been greeted, check if the 10-minute threshold has crossed
+    // If health check ran previously, check if the period before checking again has crossed
     if (lastPing) {
         const timeSinceLastPing = currentTimestamp - parseInt(lastPing, 10);
-        if (timeSinceLastPing < AUTOMATED_THROTTLE_WINDOW_MS) {
+        if (timeSinceLastPing < WARMUP_SERVICES_WINDOW_MS) {
             // Safe window: Keep it safely tucked away as a minimized pill
             infrastructureState.closeCheck();
             return;
         }
     }
 
-    // 10 minutes passed! Run an automated check that can auto-hide on completion
+    // Run an automated check that can auto-hide on completion
     sessionStorage.setItem("infra_last_warmup", currentTimestamp.toString());
     infrastructureState.openCheck(false); // false = automated auto-hide allowed
 };

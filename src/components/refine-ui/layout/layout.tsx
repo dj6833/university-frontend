@@ -26,7 +26,7 @@ export function Layout({ children }: PropsWithChildren) {
                 "flex-1",
                 "px-2",
                 "pt-4",
-                "pb-20",
+                "pb-20", //add padding at bottom of screen to avoid overlapping with health-monitor pill
                 "md:px-4",
                 "md:pt-4",
                 "lg:px-6",

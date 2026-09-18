@@ -9,10 +9,10 @@ interface ServiceState {
     url: string;
 }
 
-const TOTAL_WARMUP_SECONDS = 70;
-const POLLING_INTERVAL_MS = 4000;
-const MAX_ATTEMPTS = Math.ceil((TOTAL_WARMUP_SECONDS * 1000) / POLLING_INTERVAL_MS);
-const AUTO_CLOSE_DELAY_MS = 3000;
+const WARMUP_OVERALL_TIMEOUT_SECONDS = 70;
+const WARMUP_REQUEST_POLLING_INTERVAL_MS = 4000;
+const WARMUP_MAX_POLLING_ATTEMPTS = Math.ceil((WARMUP_OVERALL_TIMEOUT_SECONDS * 1000) / WARMUP_REQUEST_POLLING_INTERVAL_MS);
+const HEALTH_WIDGET_AUTO_CLOSE_DELAY_MS = 3000;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -20,21 +20,17 @@ export const InfrastructureMonitor: React.FC = () => {
     const [isVisible, setIsVisible] = useState(infrastructureState.isVisible);
     const [shouldAutoClose, setShouldAutoClose] = useState(!infrastructureState.isSticky);
     const [services, setServices] = useState<ServiceState[]>([]);
-    const [globalSecondsRemaining, setGlobalSecondsRemaining] = useState(TOTAL_WARMUP_SECONDS);
+    const [globalSecondsRemaining, setGlobalSecondsRemaining] = useState(WARMUP_OVERALL_TIMEOUT_SECONDS);
 
     const abortControllerRef = useRef<AbortController | null>(null);
-
-    // 💡 THE HARD CIRCUIT BREAKER REF: Shares real-time timeout states with network loops
     const isTimedOutRef = useRef(false);
 
     const pollServiceStatus = async (id: string, url: string, signal: AbortSignal) => {
         let isLive = false;
         let currentAttempts = 0;
 
-        while (!isLive && currentAttempts < MAX_ATTEMPTS) {
-            // 💡 HARD STOP GUARDS: Instantly drop out if user closed it, or if the clock hit zero
-            if (signal.aborted || isTimedOutRef.current) return;
-
+        while (!isLive && currentAttempts < WARMUP_MAX_POLLING_ATTEMPTS) {
+            if (signal.aborted || isTimedOutRef.current) return; // Instantly drop out if user closed it, or if the clock hit zero
             try {
                 currentAttempts++;
 
@@ -62,13 +58,13 @@ export const InfrastructureMonitor: React.FC = () => {
             }
 
             if (!isLive) {
-                if (currentAttempts >= MAX_ATTEMPTS || isTimedOutRef.current) {
+                if (currentAttempts >= WARMUP_MAX_POLLING_ATTEMPTS || isTimedOutRef.current) {
                     setServices((prev: ServiceState[]) => prev.map((s) => s.id === id ? { ...s, status: "failed" as const } : s));
                     break;
                 }
 
                 if (signal.aborted || isTimedOutRef.current) return;
-                await sleep(POLLING_INTERVAL_MS);
+                await sleep(WARMUP_REQUEST_POLLING_INTERVAL_MS);
             }
         }
     };
@@ -78,8 +74,8 @@ export const InfrastructureMonitor: React.FC = () => {
         abortControllerRef.current = new AbortController();
         const currentSignal = abortControllerRef.current.signal;
 
-        isTimedOutRef.current = false; // Reset the timeout lock
-        setGlobalSecondsRemaining(TOTAL_WARMUP_SECONDS);
+        isTimedOutRef.current = false;
+        setGlobalSecondsRemaining(WARMUP_OVERALL_TIMEOUT_SECONDS);
 
         const initialServices: ServiceState[] = [
             { id: "1", name: "Primary Web Service", status: "loading", url: `${BACKEND_BASE_URL}health/warmup/primary-webservice` },
@@ -98,7 +94,7 @@ export const InfrastructureMonitor: React.FC = () => {
             setIsVisible(visible);
             setShouldAutoClose(!forceSticky);
 
-            // Fires warmups cleanly when the grid transitions to view
+            // Fires warmups when the grid transitions to view
             if (visible) {
                 startWarmupSequence();
             }
@@ -115,9 +111,8 @@ export const InfrastructureMonitor: React.FC = () => {
             unsubscribe();
             if (abortControllerRef.current) abortControllerRef.current.abort();
         };
-    }, []); // Clean empty dependency array
+    }, []);
 
-    // Smooth 1-second UI countdown timer
     useEffect(() => {
         if (!isVisible || services.length === 0) return;
 
@@ -135,7 +130,7 @@ export const InfrastructureMonitor: React.FC = () => {
                     clearInterval(uiInterval);
                     setShouldAutoClose(false);
 
-                    // 💡 FIRE CIRCUIT BREAKER: Tells all background network loops to self-destruct immediately
+                    // all background network loops to self-destruct immediately
                     isTimedOutRef.current = true;
 
                     setServices((prevServices) =>
@@ -145,7 +140,7 @@ export const InfrastructureMonitor: React.FC = () => {
                 }
                 return nextSeconds;
             });
-        }, 1000);
+        }, 1000); //runs every second for smooth UI effect
 
         return () => clearInterval(uiInterval);
     }, [isVisible, services.map(s => s.status).join(",")]);
@@ -159,7 +154,7 @@ export const InfrastructureMonitor: React.FC = () => {
         if (allReady) {
             const timeout = setTimeout(() => {
                 infrastructureState.closeCheck();
-            }, AUTO_CLOSE_DELAY_MS);
+            }, HEALTH_WIDGET_AUTO_CLOSE_DELAY_MS);
 
             return () => clearTimeout(timeout);
         }
@@ -181,15 +176,14 @@ export const InfrastructureMonitor: React.FC = () => {
     const hasAnyFailed = services.some((s) => s.status === "failed");
     const isAllReady = services.length > 0 && services.every((s) => s.status === "ready");
 
-    const secondsElapsed = TOTAL_WARMUP_SECONDS - globalSecondsRemaining;
-    const globalPercentComplete = Math.min((secondsElapsed / TOTAL_WARMUP_SECONDS) * 100, 100);
+    const secondsElapsed = WARMUP_OVERALL_TIMEOUT_SECONDS - globalSecondsRemaining;
+    const globalPercentComplete = Math.min((secondsElapsed / WARMUP_OVERALL_TIMEOUT_SECONDS) * 100, 100);
 
     if (!isVisible) {
         return (
             <button
                 onClick={handleManualOpen}
                 aria-label="Open environment system status dashboard"
-                //adjusted to handle mobile view, so floats higher avoiding paging buttons etc at floor of screen
                 className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-3 py-1.5 bg-popover/90 text-popover-foreground hover:bg-muted/90 text-xs font-mono font-bold rounded-full border border-border/80 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group backdrop-blur-xs select-none"
             >
                 <svg
@@ -226,7 +220,7 @@ export const InfrastructureMonitor: React.FC = () => {
                     aria-label="Hide panel diagnostics"
                     className="flex items-center justify-center bg-transparent border-none text-muted-foreground hover:text-foreground hover:bg-muted p-1 rounded-md cursor-pointer transition-all duration-200"
                 >
-                    <svg xmlns="http://w3.org" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
