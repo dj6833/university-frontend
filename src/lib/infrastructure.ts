@@ -2,7 +2,7 @@ type Listener = (visible: boolean, forceSticky: boolean) => void;
 const listeners = new Set<Listener>();
 
 // Set the timeout window between sending warmup requests to backend services
-const WARMUP_SERVICES_WINDOW_MS = 60 * 1000; //10 * 60 * 1000;
+const WARMUP_SERVICES_WINDOW_MS = 10 * 60 * 1000; //10 mins; any longer than this and services may sleep
 
 export const infrastructureState = {
     isVisible: true,
