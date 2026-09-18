@@ -9,57 +9,45 @@ interface ServiceState {
     url: string;
 }
 
-// ==========================================
-// 💡 CONFIGURATION CONSTANTS (DERIVED MATRICES)
-// ==========================================
-const TOTAL_WARMUP_SECONDS = 5;
-const POLLING_INTERVAL_MS = 2000;
+const TOTAL_WARMUP_SECONDS = 70;
+const POLLING_INTERVAL_MS = 4000;
 const MAX_ATTEMPTS = Math.ceil((TOTAL_WARMUP_SECONDS * 1000) / POLLING_INTERVAL_MS);
 const AUTO_CLOSE_DELAY_MS = 3000;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const InfrastructureMonitor: React.FC = () => {
+export const InfrastructureMonitor: React.FC = () => {
     const [isVisible, setIsVisible] = useState(infrastructureState.isVisible);
-    const [shouldAutoClose, setShouldAutoClose] = useState(true);
+    const [shouldAutoClose, setShouldAutoClose] = useState(!infrastructureState.isSticky);
     const [services, setServices] = useState<ServiceState[]>([]);
-
     const [globalSecondsRemaining, setGlobalSecondsRemaining] = useState(TOTAL_WARMUP_SECONDS);
 
-    // 💡 THE ATTEMPT TRACKER STATE: Keeps your progress timeline moving left-to-right
-    //const [globalAttemptsElapsed, setGlobalAttemptsElapsed] = useState(0);
-
     const abortControllerRef = useRef<AbortController | null>(null);
+
+    // 💡 THE HARD CIRCUIT BREAKER REF: Shares real-time timeout states with network loops
+    const isTimedOutRef = useRef(false);
 
     const pollServiceStatus = async (id: string, url: string, signal: AbortSignal) => {
         let isLive = false;
         let currentAttempts = 0;
 
         while (!isLive && currentAttempts < MAX_ATTEMPTS) {
-            if (signal.aborted) return;
+            // 💡 HARD STOP GUARDS: Instantly drop out if user closed it, or if the clock hit zero
+            if (signal.aborted || isTimedOutRef.current) return;
 
             try {
                 currentAttempts++;
 
-                // 💡 FIX: Before setting the row to "loading", verify that the countdown clock
-                // hasn't run out. Using a functional callback guarantees we read the real-time value.
                 setServices((prev: ServiceState[]) => {
-                    // Look at the global seconds state indirectly or pass a live checkpoint.
-                    // Instead of a fragile check, look if the row was already marked failed by the clock.
                     const match = prev.find((s) => s.id === id);
-                    if (match && match.status === "failed") return prev; // Reject the background jump!
-
+                    if (match && match.status === "failed") return prev;
                     return prev.map((s) => s.id === id ? { ...s, status: "loading" as const } : s);
                 });
 
-                const response = await fetch(url, {
-                    method: "GET",
-                    mode: "cors",
-                    signal: signal
-                });
+                const response = await fetch(url, { method: "GET", mode: "cors", signal });
 
                 if (response.status === 404) {
-                    throw new Error("Target endpoint configuration pending");
+                    throw new Error("Target endpoint pending");
                 }
 
                 if (response.ok) {
@@ -70,65 +58,66 @@ const InfrastructureMonitor: React.FC = () => {
                     break;
                 }
             } catch (err) {
-                if (err instanceof Error && err.name === "AbortError") {
-                    console.log(`[Monitor] Connection loop for service ${id} stopped cleanly.`);
-                    return;
-                }
+                if (err instanceof Error && err.name === "AbortError") return;
             }
 
             if (!isLive) {
-                if (currentAttempts >= MAX_ATTEMPTS) {
-                    setServices((prev: ServiceState[]) =>
-                        prev.map((s) => s.id === id ? { ...s, status: "failed" as const } : s)
-                    );
+                if (currentAttempts >= MAX_ATTEMPTS || isTimedOutRef.current) {
+                    setServices((prev: ServiceState[]) => prev.map((s) => s.id === id ? { ...s, status: "failed" as const } : s));
                     break;
                 }
 
-                if (signal.aborted) return;
+                if (signal.aborted || isTimedOutRef.current) return;
                 await sleep(POLLING_INTERVAL_MS);
             }
         }
     };
 
+    const startWarmupSequence = () => {
+        if (abortControllerRef.current) abortControllerRef.current.abort();
+        abortControllerRef.current = new AbortController();
+        const currentSignal = abortControllerRef.current.signal;
+
+        isTimedOutRef.current = false; // Reset the timeout lock
+        setGlobalSecondsRemaining(TOTAL_WARMUP_SECONDS);
+
+        const initialServices: ServiceState[] = [
+            { id: "1", name: "Primary Web Service", status: "loading", url: `${BACKEND_BASE_URL}health/warmup/primary-webservice` },
+            { id: "2", name: "Database Service", status: "loading", url: `${BACKEND_BASE_URL}health/warmup/database` },
+            { id: "3", name: "Analysis Engine", status: "loading", url: `${BACKEND_ANALYSIS_SERVICE_URL}warmup` }
+        ];
+
+        setServices(initialServices);
+        initialServices.forEach((service) => {
+            pollServiceStatus(service.id, service.url, currentSignal);
+        });
+    };
+
     useEffect(() => {
-        const basePrimaryWebServiceUrl = BACKEND_BASE_URL.replace(/\/\$/, "");
-        const baseAnalysisEngineUrl = BACKEND_ANALYSIS_SERVICE_URL.replace(/\/\$/, "");
-
-        const handleStateChange = (visible: boolean, triggerSource: "automated" | "manual") => {
+        const handleStateChange = (visible: boolean, forceSticky: boolean) => {
             setIsVisible(visible);
+            setShouldAutoClose(!forceSticky);
 
-            if (triggerSource === "manual") {
-                setShouldAutoClose(false);
-            }
-
+            // Fires warmups cleanly when the grid transitions to view
             if (visible) {
-                if (abortControllerRef.current) abortControllerRef.current.abort();
-                abortControllerRef.current = new AbortController();
-                const currentSignal = abortControllerRef.current.signal;
-
-                setGlobalSecondsRemaining(TOTAL_WARMUP_SECONDS);
-                //setGlobalAttemptsElapsed(0); // Reset visual meter back to start line on open
-
-                const initialServices: ServiceState[] = [
-                    { id: "1", name: "Primary Web Service", status: "loading", url: `${basePrimaryWebServiceUrl}health/warmup/primary-webservice` },
-                    { id: "2", name: "Database Service", status: "loading", url: `${basePrimaryWebServiceUrl}health/warmup/database` },
-                    { id: "3", name: "Analysis Engine", status: "loading", url: `${baseAnalysisEngineUrl}warmup` }
-                ];
-
-                setServices(initialServices);
-                initialServices.forEach((service) => {
-                    pollServiceStatus(service.id, service.url, currentSignal);
-                });
+                startWarmupSequence();
             }
         };
 
         const unsubscribe = infrastructureState.subscribe(handleStateChange);
+
+        // Fire once on initial web application layout mount boot
+        if (infrastructureState.isVisible) {
+            startWarmupSequence();
+        }
+
         return () => {
             unsubscribe();
+            if (abortControllerRef.current) abortControllerRef.current.abort();
         };
-    }, []);
+    }, []); // Clean empty dependency array
 
-    // Smooth 1-second UI countdown timer for the unified clock
+    // Smooth 1-second UI countdown timer
     useEffect(() => {
         if (!isVisible || services.length === 0) return;
 
@@ -143,14 +132,17 @@ const InfrastructureMonitor: React.FC = () => {
                 const nextSeconds = prevSeconds - 1;
 
                 if (nextSeconds <= 0) {
+                    clearInterval(uiInterval);
                     setShouldAutoClose(false);
+
+                    // 💡 FIRE CIRCUIT BREAKER: Tells all background network loops to self-destruct immediately
+                    isTimedOutRef.current = true;
+
                     setServices((prevServices) =>
                         prevServices.map((s) => s.status === "loading" ? { ...s, status: "failed" as const } : s)
                     );
-                    clearInterval(uiInterval);
                     return 0;
                 }
-
                 return nextSeconds;
             });
         }, 1000);
@@ -160,70 +152,78 @@ const InfrastructureMonitor: React.FC = () => {
 
     // Independent Lifecycle Watcher for Automated Dismissals
     useEffect(() => {
-        if (services.length === 0 || !shouldAutoClose) return;
+        if (services.length === 0 || !isVisible || !shouldAutoClose) return;
 
         const allReady = services.every((s) => s.status === "ready");
 
         if (allReady) {
-            console.log(`Monitor: Happy path complete. Dismissing window in ${AUTO_CLOSE_DELAY_MS / 1000} seconds...`);
             const timeout = setTimeout(() => {
                 infrastructureState.closeCheck();
-                setServices([]);
-            }, 2000); // Using the 2s close cushion to clear screen
+            }, AUTO_CLOSE_DELAY_MS);
 
             return () => clearTimeout(timeout);
         }
-    }, [services.map(s => s.status).join(","), shouldAutoClose]);
-
-    const handleRetryAllFailed = () => {
-        if (abortControllerRef.current) abortControllerRef.current.abort();
-        abortControllerRef.current = new AbortController();
-        const currentSignal = abortControllerRef.current.signal;
-
-        setGlobalSecondsRemaining(TOTAL_WARMUP_SECONDS);
-
-        setServices((prev) =>
-            prev.map((s) => s.status === "failed" ? { ...s, status: "loading" as const } : s)
-        );
-
-        services.forEach((service) => {
-            if (service.status === "failed") {
-                pollServiceStatus(service.id, service.url, currentSignal);
-            }
-        });
-    };
+    }, [services.map(s => s.status).join(","), isVisible, shouldAutoClose]);
 
     const handleManualHide = () => {
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
         }
         sessionStorage.setItem("infra_has_seen_monitor", "true");
+        sessionStorage.setItem("infra_session_greeted", "true");
         infrastructureState.closeCheck();
-        setServices([]);
-        setShouldAutoClose(true);
     };
 
-    if (!isVisible) return null;
+    const handleManualOpen = () => {
+        infrastructureState.openCheck(true);
+    };
 
     const hasAnyFailed = services.some((s) => s.status === "failed");
     const isAllReady = services.length > 0 && services.every((s) => s.status === "ready");
 
-    // 💡 THE ULTRA-SMOOTH FIX: Computes progress directly from the elapsed seconds.
-    // Ticking every single second ensures the bar crawls continuously left-to-right!
     const secondsElapsed = TOTAL_WARMUP_SECONDS - globalSecondsRemaining;
     const globalPercentComplete = Math.min((secondsElapsed / TOTAL_WARMUP_SECONDS) * 100, 100);
 
+    if (!isVisible) {
+        return (
+            <button
+                onClick={handleManualOpen}
+                aria-label="Open environment system status dashboard"
+                //adjusted to handle mobile view, so floats higher avoiding paging buttons etc at floor of screen
+                className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-3 py-1.5 bg-popover/90 text-popover-foreground hover:bg-muted/90 text-xs font-mono font-bold rounded-full border border-border/80 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group backdrop-blur-xs select-none"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-primary group-hover:scale-110 transition-transform duration-300"
+                >
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                </svg>
+
+                <span className="text-muted-foreground group-hover:text-foreground transition-colors duration-200">
+                    Health
+                </span>
+            </button>
+        );
+    }
+
+
     return (
         <div className="fixed bottom-4 right-4 z-50 w-[calc(100vw-32px)] sm:w-[380px] p-5 bg-popover text-popover-foreground rounded-xl border border-border font-mono shadow-2xl shadow-black/20 dark:shadow-black/50 box-border">
-
             <div className="flex justify-between items-start border-b border-border pb-2 mb-3">
                 <h3 className="m-0 text-sm font-semibold tracking-tight text-foreground">
                     System Environment Check
                 </h3>
-
                 <button
                     onClick={handleManualHide}
-                    aria-label="Hide and stop diagnostics"
+                    aria-label="Hide panel diagnostics"
                     className="flex items-center justify-center bg-transparent border-none text-muted-foreground hover:text-foreground hover:bg-muted p-1 rounded-md cursor-pointer transition-all duration-200"
                 >
                     <svg xmlns="http://w3.org" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -252,7 +252,6 @@ const InfrastructureMonitor: React.FC = () => {
                 ))}
             </ul>
 
-            {/* Global Timeline Progress Meter */}
             {!isAllReady && (
                 <div className="mb-4 w-full">
                     <div className="w-full h-1 bg-muted rounded overflow-hidden">
@@ -293,7 +292,7 @@ const InfrastructureMonitor: React.FC = () => {
                             Some services took too long to respond. The site may not work as expected if services are offline.
                         </p>
                         <button
-                            onClick={handleRetryAllFailed}
+                            onClick={startWarmupSequence}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors border-none cursor-pointer text-xs p-2 rounded-md font-bold font-mono w-full shadow-md"
                         >
                             Retry Failed Services
@@ -304,5 +303,3 @@ const InfrastructureMonitor: React.FC = () => {
         </div>
     );
 };
-
-export default InfrastructureMonitor

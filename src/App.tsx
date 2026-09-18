@@ -2,7 +2,7 @@ import { Authenticated, Refine  } from "@refinedev/core";
 import { DevtoolsProvider } from "@refinedev/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import routerProvider, {
   DocumentTitleHandler,
@@ -46,7 +46,7 @@ import EnrollmentsJoin from "./pages/enrollments/join";
 import EnrollmentConfirm from "./pages/enrollments/confirm";
 import RecommendedClassList from "@/pages/classes/recommendations.tsx";
 
-import InfrastructureMonitor from "./components/InfrastructureMonitor";
+import { InfrastructureMonitor } from "./components/InfrastructureMonitor";
 import {evaluateInfrastructureLifespan} from "@/lib/infrastructure.ts";
 
 /*
@@ -64,25 +64,27 @@ window.fetch = async (input, init) => {
 // ==========================================
 // NEW CHILD LAYOUT WRAPPER FOR TRIGGERING BACKEND SERVICE WARMUP
 // ==========================================
-function RefineLayoutWrapper({ children }: { children: React.ReactNode }) {
+// 💡 THE COMPONENT DEFERRER:
+// It mounts inside the DOM layout stream safely below your context providers.
+// This guarantees Vite has finished building its chunks before it executes.
+function DeferredMonitor() {
   const location = useLocation();
 
-  // Trigger A: The Deterministic Initial Page Load
   useEffect(() => {
-    console.log("Application Shell: Initial layout mount confirmed. Running infrastructure validation.");
-    evaluateInfrastructureLifespan(false);
-  }, []);
-
-  // Trigger B: The Active User Interaction Hook
-  useEffect(() => {
-    evaluateInfrastructureLifespan(false);
+    // Executes cleanly once the child framework layout finishes rendering
+    evaluateInfrastructureLifespan();
   }, [location.pathname]);
 
+  return <InfrastructureMonitor />;
+}
+
+// Your main layout manager stays lean and doesn't call any un-scoped hooks
+function RefineLayoutWrapper({ children }: { children: React.ReactNode }) {
   return (
       <>
         {children}
-        {/* Mount the overlay widget globally right inside the routing tree */}
-        <InfrastructureMonitor />
+        {/* 💡 Safe, deterministic mount placement */}
+        <DeferredMonitor />
       </>
   );
 }

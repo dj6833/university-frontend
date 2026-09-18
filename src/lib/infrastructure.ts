@@ -1,68 +1,57 @@
-type Listener = (visible: boolean, source: "automated" | "manual") => void;
+type Listener = (visible: boolean, forceSticky: boolean) => void;
 const listeners = new Set<Listener>();
 
-// ==========================================
-// 💡 CENTRAL CONFIGURATION CONSTANTS
-// ==========================================
-// Throttles automated popups to run at most once every 10 minutes
-const AUTOMATED_THROTTLE_WINDOW_MS = 20 * 1000 //10 * 60 * 1000;
+// Configuration: 10 minutes in milliseconds
+const AUTOMATED_THROTTLE_WINDOW_MS = 2 * 60 * 1000; //10 * 60 * 1000;
 
 export const infrastructureState = {
-    isVisible: false,
-    triggerSource: "automated" as "automated" | "manual",
+    isVisible: true,
+    isSticky: false,
 
     subscribe: (listener: Listener) => {
         listeners.add(listener);
-        return () => {
-            listeners.delete(listener);
-        };
+        return () => listeners.delete(listener);
     },
 
-    triggerCheck: (source: "automated" | "manual") => {
-        console.log(`Global State: Infrastructure check requested via ${source}.`);
+    // Open the panel and explicitly declare if it must stay wide open (sticky) or can auto-hide
+    openCheck: (forceSticky: boolean) => {
         infrastructureState.isVisible = true;
-        infrastructureState.triggerSource = source;
-        listeners.forEach((l) => l(true, source));
+        infrastructureState.isSticky = forceSticky;
+        listeners.forEach((l) => l(true, forceSticky));
     },
 
     closeCheck: () => {
         infrastructureState.isVisible = false;
-        infrastructureState.triggerSource = "automated";
-        listeners.forEach((l) => l(false, "automated"));
+        infrastructureState.isSticky = false;
+        listeners.forEach((l) => l(false, false));
     }
 };
 
-export const evaluateInfrastructureLifespan = (isManualClick = false): void => {
+export const evaluateInfrastructureLifespan = (): void => {
     const currentTimestamp = Date.now();
     const lastPing = sessionStorage.getItem("infra_last_warmup");
+    const hasBeenGreeted = sessionStorage.getItem("infra_session_greeted");
 
-    // 💡 Uses the centralized constant parameter for the session lifespan math
-    if (!isManualClick && lastPing) {
+    // 1. FIRST ACCESS OF THE SESSION RULE:
+    // If they haven't seen the greeting yet on this tab, force it to open wide and stay STICKY
+    if (!hasBeenGreeted) {
+        sessionStorage.setItem("infra_last_warmup", currentTimestamp.toString());
+        infrastructureState.openCheck(true); // true = sticky mode locked
+        return;
+    }
+
+    // 2. THE 10-MINUTE PERIODIC WAKEUP RULE:
+    // If they have been greeted, check if the 10-minute threshold has crossed
+    if (lastPing) {
         const timeSinceLastPing = currentTimestamp - parseInt(lastPing, 10);
         if (timeSinceLastPing < AUTOMATED_THROTTLE_WINDOW_MS) {
+            // Safe window: Keep it safely tucked away as a minimized pill
+            infrastructureState.closeCheck();
             return;
         }
     }
 
-    if (!isManualClick) {
-        sessionStorage.setItem("infra_last_warmup", currentTimestamp.toString());
-    }
-
-    // Check if this specific browser tab session has already acknowledged the greeting
-    const hasSeenBefore = sessionStorage.getItem("infra_has_seen_monitor");
-
-    let forcedSource: "automated" | "manual" = isManualClick ? "manual" : "automated";
-
-    // If it's an automated background check but it's a fresh tab session,
-    // upgrade the source to "manual" so the card stays open as a greeting!
-    if (!isManualClick && !hasSeenBefore) {
-        console.log("Infrastructure Lifespan: Fresh tab session detected. Forcing sticky layout.");
-        forcedSource = "manual";
-    }
-
-    infrastructureState.triggerCheck(forcedSource);
-};
-
-export const triggerManualServiceCheck = (): void => {
-    evaluateInfrastructureLifespan(true);
+    // 10 minutes passed! Run an automated check that can auto-hide on completion
+    sessionStorage.setItem("infra_last_warmup", currentTimestamp.toString());
+    infrastructureState.openCheck(false); // false = automated auto-hide allowed
 };
