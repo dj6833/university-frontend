@@ -46,7 +46,7 @@ import EnrollmentsJoin from "./pages/enrollments/join";
 import EnrollmentConfirm from "./pages/enrollments/confirm";
 import RecommendedClassList from "@/pages/classes/recommendations.tsx";
 
-import { InfrastructureMonitor } from "./components/InfrastructureMonitor";
+import InfrastructureMonitor from "./components/InfrastructureMonitor";
 import {evaluateInfrastructureLifespan} from "@/lib/infrastructure.ts";
 
 /*

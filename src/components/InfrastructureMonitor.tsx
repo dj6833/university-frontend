@@ -9,20 +9,26 @@ interface ServiceState {
     url: string;
 }
 
-const TOTAL_WARMUP_SECONDS = 15;
-const POLLING_INTERVAL_MS = 4000;
+// ==========================================
+// 💡 CONFIGURATION CONSTANTS (DERIVED MATRICES)
+// ==========================================
+const TOTAL_WARMUP_SECONDS = 5;
+const POLLING_INTERVAL_MS = 2000;
 const MAX_ATTEMPTS = Math.ceil((TOTAL_WARMUP_SECONDS * 1000) / POLLING_INTERVAL_MS);
-const AUTO_CLOSE_DELAY_MS = 10000;
+const AUTO_CLOSE_DELAY_MS = 3000;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const InfrastructureMonitor: React.FC = () => {
+const InfrastructureMonitor: React.FC = () => {
     const [isVisible, setIsVisible] = useState(infrastructureState.isVisible);
     const [shouldAutoClose, setShouldAutoClose] = useState(true);
     const [services, setServices] = useState<ServiceState[]>([]);
+
     const [globalSecondsRemaining, setGlobalSecondsRemaining] = useState(TOTAL_WARMUP_SECONDS);
 
-    // 💡 PERSISTENT REF TRACKER: Holds our cancellation tokens across re-renders
+    // 💡 THE ATTEMPT TRACKER STATE: Keeps your progress timeline moving left-to-right
+    //const [globalAttemptsElapsed, setGlobalAttemptsElapsed] = useState(0);
+
     const abortControllerRef = useRef<AbortController | null>(null);
 
     const pollServiceStatus = async (id: string, url: string, signal: AbortSignal) => {
@@ -30,20 +36,26 @@ export const InfrastructureMonitor: React.FC = () => {
         let currentAttempts = 0;
 
         while (!isLive && currentAttempts < MAX_ATTEMPTS) {
-            // 💡 CANCELLATION GUARD: Immediately exit if user clicked close/hide
             if (signal.aborted) return;
 
             try {
                 currentAttempts++;
 
-                setServices((prev: ServiceState[]) =>
-                    prev.map((s) => s.id === id ? { ...s, status: "loading" as const } : s)
-                );
+                // 💡 FIX: Before setting the row to "loading", verify that the countdown clock
+                // hasn't run out. Using a functional callback guarantees we read the real-time value.
+                setServices((prev: ServiceState[]) => {
+                    // Look at the global seconds state indirectly or pass a live checkpoint.
+                    // Instead of a fragile check, look if the row was already marked failed by the clock.
+                    const match = prev.find((s) => s.id === id);
+                    if (match && match.status === "failed") return prev; // Reject the background jump!
+
+                    return prev.map((s) => s.id === id ? { ...s, status: "loading" as const } : s);
+                });
 
                 const response = await fetch(url, {
                     method: "GET",
                     mode: "cors",
-                    signal: signal // 💡 Attaches the cancellation token to the live browser handshake
+                    signal: signal
                 });
 
                 if (response.status === 404) {
@@ -58,7 +70,6 @@ export const InfrastructureMonitor: React.FC = () => {
                     break;
                 }
             } catch (err) {
-                // If the error was an intentional cancellation abort call, drop out of loop entirely
                 if (err instanceof Error && err.name === "AbortError") {
                     console.log(`[Monitor] Connection loop for service ${id} stopped cleanly.`);
                     return;
@@ -67,11 +78,12 @@ export const InfrastructureMonitor: React.FC = () => {
 
             if (!isLive) {
                 if (currentAttempts >= MAX_ATTEMPTS) {
-                    setServices((prev: ServiceState[]) => prev.map((s) => s.id === id ? { ...s, status: "failed" as const } : s));
+                    setServices((prev: ServiceState[]) =>
+                        prev.map((s) => s.id === id ? { ...s, status: "failed" as const } : s)
+                    );
                     break;
                 }
 
-                // Double check before sleeping to avoid dead time delays
                 if (signal.aborted) return;
                 await sleep(POLLING_INTERVAL_MS);
             }
@@ -79,8 +91,8 @@ export const InfrastructureMonitor: React.FC = () => {
     };
 
     useEffect(() => {
-        const basePrimaryWebServiceUrl = BACKEND_BASE_URL;
-        const baseAnalysisEngineUrl = BACKEND_ANALYSIS_SERVICE_URL;
+        const basePrimaryWebServiceUrl = BACKEND_BASE_URL.replace(/\/\$/, "");
+        const baseAnalysisEngineUrl = BACKEND_ANALYSIS_SERVICE_URL.replace(/\/\$/, "");
 
         const handleStateChange = (visible: boolean, triggerSource: "automated" | "manual") => {
             setIsVisible(visible);
@@ -90,12 +102,13 @@ export const InfrastructureMonitor: React.FC = () => {
             }
 
             if (visible) {
-                // 💡 INITIALIZE CANCELLATION ENGINE: Wipes out any old tokens and creates a fresh track
                 if (abortControllerRef.current) abortControllerRef.current.abort();
                 abortControllerRef.current = new AbortController();
                 const currentSignal = abortControllerRef.current.signal;
 
                 setGlobalSecondsRemaining(TOTAL_WARMUP_SECONDS);
+                //setGlobalAttemptsElapsed(0); // Reset visual meter back to start line on open
+
                 const initialServices: ServiceState[] = [
                     { id: "1", name: "Primary Web Service", status: "loading", url: `${basePrimaryWebServiceUrl}health/warmup/primary-webservice` },
                     { id: "2", name: "Database Service", status: "loading", url: `${basePrimaryWebServiceUrl}health/warmup/database` },
@@ -110,9 +123,8 @@ export const InfrastructureMonitor: React.FC = () => {
         };
 
         const unsubscribe = infrastructureState.subscribe(handleStateChange);
-        // 💡 THE FIX: Remove the abort logic from here!
         return () => {
-            unsubscribe(); // Only detach the global message listener
+            unsubscribe();
         };
     }, []);
 
@@ -121,7 +133,6 @@ export const InfrastructureMonitor: React.FC = () => {
         if (!isVisible || services.length === 0) return;
 
         const uiInterval = setInterval(() => {
-            // 💡 FIX: Check if all services are ready. If they are, turn off the clock.
             const allReady = services.every((s) => s.status === "ready");
             if (allReady) {
                 clearInterval(uiInterval);
@@ -133,19 +144,19 @@ export const InfrastructureMonitor: React.FC = () => {
 
                 if (nextSeconds <= 0) {
                     setShouldAutoClose(false);
-                    // Force any remaining loading services to failed status on zero clock
                     setServices((prevServices) =>
                         prevServices.map((s) => s.status === "loading" ? { ...s, status: "failed" as const } : s)
                     );
                     clearInterval(uiInterval);
                     return 0;
                 }
+
                 return nextSeconds;
             });
         }, 1000);
 
         return () => clearInterval(uiInterval);
-    }, [isVisible, services.map(s => s.status).join(",")]); // 💡 Watches status changes to toggle clock updates safely
+    }, [isVisible, services.map(s => s.status).join(",")]);
 
     // Independent Lifecycle Watcher for Automated Dismissals
     useEffect(() => {
@@ -154,11 +165,11 @@ export const InfrastructureMonitor: React.FC = () => {
         const allReady = services.every((s) => s.status === "ready");
 
         if (allReady) {
-            console.log("Monitor: Happy path complete. Dismissing window in 2 seconds...");
+            console.log(`Monitor: Happy path complete. Dismissing window in ${AUTO_CLOSE_DELAY_MS / 1000} seconds...`);
             const timeout = setTimeout(() => {
                 infrastructureState.closeCheck();
                 setServices([]);
-            }, AUTO_CLOSE_DELAY_MS);
+            }, 2000); // Using the 2s close cushion to clear screen
 
             return () => clearTimeout(timeout);
         }
@@ -170,6 +181,7 @@ export const InfrastructureMonitor: React.FC = () => {
         const currentSignal = abortControllerRef.current.signal;
 
         setGlobalSecondsRemaining(TOTAL_WARMUP_SECONDS);
+
         setServices((prev) =>
             prev.map((s) => s.status === "failed" ? { ...s, status: "loading" as const } : s)
         );
@@ -185,6 +197,7 @@ export const InfrastructureMonitor: React.FC = () => {
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
         }
+        sessionStorage.setItem("infra_has_seen_monitor", "true");
         infrastructureState.closeCheck();
         setServices([]);
         setShouldAutoClose(true);
@@ -195,8 +208,10 @@ export const InfrastructureMonitor: React.FC = () => {
     const hasAnyFailed = services.some((s) => s.status === "failed");
     const isAllReady = services.length > 0 && services.every((s) => s.status === "ready");
 
-    // Compute singular global timeline fill percentage against your constant
-    const globalPercentComplete = ((TOTAL_WARMUP_SECONDS - globalSecondsRemaining) / TOTAL_WARMUP_SECONDS) * 100;
+    // 💡 THE ULTRA-SMOOTH FIX: Computes progress directly from the elapsed seconds.
+    // Ticking every single second ensures the bar crawls continuously left-to-right!
+    const secondsElapsed = TOTAL_WARMUP_SECONDS - globalSecondsRemaining;
+    const globalPercentComplete = Math.min((secondsElapsed / TOTAL_WARMUP_SECONDS) * 100, 100);
 
     return (
         <div className="fixed bottom-4 right-4 z-50 w-[calc(100vw-32px)] sm:w-[380px] p-5 bg-popover text-popover-foreground rounded-xl border border-border font-mono shadow-2xl shadow-black/20 dark:shadow-black/50 box-border">
@@ -221,7 +236,6 @@ export const InfrastructureMonitor: React.FC = () => {
             <p className="text-[11px] text-muted-foreground m-0 mb-4 leading-relaxed">
                 This project runs on services that automatically spin down during inactivity to save resources. Please be patient while we check they are awake, this usually takes under one minute.
             </p>
-
 
             <ul className="list-none p-0 m-0 mb-5">
                 {services.map((service) => (
@@ -254,9 +268,17 @@ export const InfrastructureMonitor: React.FC = () => {
 
             <div className="border-t border-border pt-3 text-center">
                 {isAllReady && (
-                    <p className="text-xs font-semibold text-emerald-500 m-0">
-                        All systems nominal. Environment ready.
-                    </p>
+                    <div className="flex flex-col gap-2.5 items-center">
+                        <p className="text-xs font-semibold text-emerald-500 m-0">
+                            All systems nominal. Environment ready.
+                        </p>
+                        <button
+                            onClick={handleManualHide}
+                            className="bg-emerald-500 text-white hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 transition-colors border-none cursor-pointer text-xs p-2 rounded-md font-bold font-mono w-full shadow-md"
+                        >
+                            Close Window
+                        </button>
+                    </div>
                 )}
 
                 {!hasAnyFailed && !isAllReady && (
@@ -265,12 +287,10 @@ export const InfrastructureMonitor: React.FC = () => {
                     </p>
                 )}
 
-
                 {hasAnyFailed && (
                     <div className="flex flex-col gap-2.5 items-center">
-                        {/* 💡 UPDATED: Short, snappy text alerting the user about the impact */}
                         <p className="text-xs text-destructive font-medium m-0 leading-relaxed">
-                            Some services took too long to respond. This may cause system issues.
+                            Some services took too long to respond. The site may not work as expected if services are offline.
                         </p>
                         <button
                             onClick={handleRetryAllFailed}
@@ -284,3 +304,5 @@ export const InfrastructureMonitor: React.FC = () => {
         </div>
     );
 };
+
+export default InfrastructureMonitor
