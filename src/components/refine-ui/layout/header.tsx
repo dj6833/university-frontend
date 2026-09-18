@@ -8,11 +8,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import {cn} from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useGetIdentity, useLogout, useRefineOptions } from "@refinedev/core";
-import { ActivityIcon, LogOutIcon } from "lucide-react";
+import { LogOutIcon } from "lucide-react";
 import type { User } from "@/types";
-import {triggerManualServiceCheck} from "@/lib/infrastructure.ts";
 
 export const Header = () => {
   const { isMobile } = useSidebar();
@@ -122,62 +121,46 @@ function MobileHeader() {
 }
 
 const UserDropdown = () => {
-    const { data: user } = useGetIdentity<User>();
-    const { mutate: logout, isPending: isLoggingOut } = useLogout();
+  const { data: user } = useGetIdentity<User>();
+  const { mutate: logout, isPending: isLoggingOut } = useLogout();
 
-    return (
-        <DropdownMenu>
-            <DropdownMenuTrigger>
-                <UserAvatar />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64">
-                <div className="px-3 py-2">
-                    <p className="text-sm font-semibold">
-                        {user?.name ?? "Signed in user"}
-                    </p>
-                    {user?.email && (
-                        <p className="text-xs text-muted-foreground truncate">
-                            {user.email}
-                        </p>
-                    )}
-                    {user?.role && (
-                        <span className="mt-2 inline-flex items-center rounded-sm bg-muted px-2 py-0.5 text-xs font-semibold uppercase text-muted-foreground">
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger>
+        <UserAvatar />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-64">
+        <div className="px-3 py-2">
+          <p className="text-sm font-semibold">
+            {user?.name ?? "Signed in user"}
+          </p>
+          {user?.email && (
+            <p className="text-xs text-muted-foreground truncate">
+              {user.email}
+            </p>
+          )}
+          {user?.role && (
+            <span className="mt-2 inline-flex items-center rounded-sm bg-muted px-2 py-0.5 text-xs font-semibold uppercase text-muted-foreground">
               {user.role}
             </span>
-                    )}
-                </div>
-                <DropdownMenuSeparator />
-
-                {/* 1. System Environment Status Diagnostic Trigger */}
-                <DropdownMenuItem
-                    onClick={() => {
-                        triggerManualServiceCheck();
-                    }}
-                    className="cursor-pointer"
-                >
-                    <ActivityIcon className="text-muted-foreground w-4 h-4 mr-2" />
-                    <span className="text-sm font-medium">Check Site Status</span>
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
-
-                {/* 2. Your Existing Logout Link */}
-                <DropdownMenuItem
-                    onClick={() => {
-                        logout();
-                    }}
-                    className="cursor-pointer"
-                >
-                    <LogOutIcon
-                        className={cn("text-destructive", "hover:text-destructive")}
-                    />
-                    <span className={cn("text-destructive", "hover:text-destructive")}>
+          )}
+        </div>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => {
+            logout();
+          }}
+        >
+          <LogOutIcon
+            className={cn("text-destructive", "hover:text-destructive")}
+          />
+          <span className={cn("text-destructive", "hover:text-destructive")}>
             {isLoggingOut ? "Logging out..." : "Logout"}
           </span>
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-    );
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 };
 
 Header.displayName = "Header";

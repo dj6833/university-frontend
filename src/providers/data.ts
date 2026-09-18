@@ -138,38 +138,4 @@ const options: CreateDataProviderOptions = {
 
 const { dataProvider } = createDataProvider(BACKEND_BASE_URL, options);
 
-let lastWarmupTimestamp = 0;
-
-const triggerInfrastructureWarmup = (): void => {
-  const currentTimestamp = Date.now();
-  const tenMinutesInMs = 10 * 60 * 1000;
-  const timeSinceLastPing = currentTimestamp - lastWarmupTimestamp;
-
-  if (lastWarmupTimestamp !== 0 && timeSinceLastPing < tenMinutesInMs) {
-    return;
-  }
-
-  lastWarmupTimestamp = currentTimestamp;
-
-  console.log("Refine Core Network Layer: System status validation triggered.");
-
-  // Broadcast the signal. The UI component will catch this and fire the 3 parallel fetches.
-  const event = new CustomEvent("infrastructure-check-start");
-  window.dispatchEvent(event);
-};
-
-const wrapMethod = (originalMethod: Function | undefined) => {
-  if (!originalMethod) return undefined;
-  return async (...args: any[]) => {
-    triggerInfrastructureWarmup();
-    return originalMethod(...args);
-  };
-};
-
-dataProvider.getList = wrapMethod(dataProvider.getList) as any;
-dataProvider.getOne = wrapMethod(dataProvider.getOne) as any;
-dataProvider.create = wrapMethod(dataProvider.create) as any;
-dataProvider.deleteOne = wrapMethod(dataProvider.deleteOne) as any;
-dataProvider.custom = wrapMethod(dataProvider.custom) as any;
-
 export { dataProvider };
