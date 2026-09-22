@@ -27,6 +27,7 @@ import { ROLE_OPTIONS } from "@/constants";
 import UploadWidget from "@/components/upload-widget";
 import { UserRole } from "@/types";
 import { toast } from "sonner";
+import { useTodoToast } from "@/hooks/use-todo-toast.ts"
 
 const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -40,6 +41,7 @@ const registerSchema = z.object({
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export const SignUpForm = () => {
+  const todo = useTodoToast();
   const Link = useLink();
   const { mutate: register, isPending: isRegistering } = useRegister();
 
@@ -100,7 +102,10 @@ export const SignUpForm = () => {
         <CardHeader className="header">
           <CardTitle className="title">Register</CardTitle>
           <CardDescription className="description">
-            Create an account to get started.
+            Create an account to get started.<br />
+              <span className="mt-2 block text-red-600">
+                New user registration is disabled. Account creation is currently managed by system administrators.
+              </span>
           </CardDescription>
         </CardHeader>
 
@@ -140,43 +145,44 @@ export const SignUpForm = () => {
               />
 
               {/* Profile Photo Upload */}
-              <FormField
-                control={form.control}
-                name="image"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Profile Photo</FormLabel>
-                    <FormControl>
-                      <UploadWidget
-                        value={
-                          field.value
-                            ? {
-                                url: field.value,
-                                publicId: imagePublicId ?? "",
-                              }
-                            : null
-                        }
-                        onChange={(file) => {
-                          if (file) {
-                            field.onChange(file.url);
-                            form.setValue("imageCldPubId", file.publicId, {
-                              shouldValidate: true,
-                              shouldDirty: true,
-                            });
-                          } else {
-                            field.onChange("");
-                            form.setValue("imageCldPubId", "", {
-                              shouldValidate: true,
-                              shouldDirty: true,
-                            });
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-            )}
-              />
+            {/* Hiding this from users while we are blocking account creation, as images are uploaded BEFORE signup button is clicked */}
+            {/*  <FormField*/}
+            {/*    control={form.control}*/}
+            {/*    name="image"*/}
+            {/*    render={({ field }) => (*/}
+            {/*      <FormItem>*/}
+            {/*        <FormLabel>Profile Photo</FormLabel>*/}
+            {/*        <FormControl>*/}
+            {/*          <UploadWidget*/}
+            {/*            value={*/}
+            {/*              field.value*/}
+            {/*                ? {*/}
+            {/*                    url: field.value,*/}
+            {/*                    publicId: imagePublicId ?? "",*/}
+            {/*                  }*/}
+            {/*                : null*/}
+            {/*            }*/}
+            {/*            onChange={(file) => {*/}
+            {/*              if (file) {*/}
+            {/*                field.onChange(file.url);*/}
+            {/*                form.setValue("imageCldPubId", file.publicId, {*/}
+            {/*                  shouldValidate: true,*/}
+            {/*                  shouldDirty: true,*/}
+            {/*                });*/}
+            {/*              } else {*/}
+            {/*                field.onChange("");*/}
+            {/*                form.setValue("imageCldPubId", "", {*/}
+            {/*                  shouldValidate: true,*/}
+            {/*                  shouldDirty: true,*/}
+            {/*                });*/}
+            {/*              }*/}
+            {/*            }}*/}
+            {/*          />*/}
+            {/*        </FormControl>*/}
+            {/*        <FormMessage />*/}
+            {/*      </FormItem>*/}
+            {/*)}*/}
+            {/*  />*/}
 
               <FormField
                 control={form.control}
@@ -232,6 +238,7 @@ export const SignUpForm = () => {
               size="lg"
                 className="submit"
                 disabled={form.formState.isSubmitting || isRegistering}
+                onClick={(e) => todo(e, "New user registration is disabled. Account creation is currently managed by system administrators")}
                   >
                 {form.formState.isSubmitting || isRegistering
                   ? "Creating Account..."

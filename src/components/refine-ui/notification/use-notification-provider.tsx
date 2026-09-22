@@ -2,6 +2,24 @@ import { UndoableNotification } from "@/components/refine-ui/notification/undoab
 import type { NotificationProvider } from "@refinedev/core";
 import { toast } from "sonner";
 
+// 💡 Helper function to strip out raw JSON text blocks and extract the actual message
+const cleanToastText = (text: string | undefined): string | undefined => {
+  if (!text || typeof text !== "string") return text;
+
+  // Check if Refine passed an ugly stringified JSON object
+  if (text.trim().startsWith("{")) {
+    try {
+      const parsed = JSON.parse(text);
+      // Safely extract just the inner message ("Access Denied...") or error keyword
+      return parsed.message || parsed.error || text;
+    } catch (e) {
+      // Fallback to the original text if it's not valid JSON
+      return text;
+    }
+  }
+  return text;
+};
+
 export function useNotificationProvider(): NotificationProvider {
   return {
     open: ({
@@ -22,9 +40,20 @@ export function useNotificationProvider(): NotificationProvider {
           return;
 
         case "error":
-          toast.error(message, {
+          // Clean up the raw JSON body description text as before
+          const cleanDesc = cleanToastText(description);
+
+          // Clean up the title string layout by removing the status code snippet
+          let cleanTitle = message || "An error occurred";
+
+          if (typeof cleanTitle === "string") {
+            //Clear out any http status code the Refine engine includes during an error
+            cleanTitle = cleanTitle.replace(/\s*\(status code:\s*\d+\)/i, "");
+          }
+
+          toast.error(cleanTitle, {
             id: key,
-            description,
+            description: cleanDesc,
             richColors: true,
           });
           return;
