@@ -20,6 +20,7 @@ import { CreateButton } from "@/components/refine-ui/buttons/create";
 import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
 import { DataTable } from "@/components/refine-ui/data-table/data-table";
 import { ShowButton } from "@/components/refine-ui/buttons/show";
+import { SearchInput } from "@/components/search-input";
 
 import { Subject, User } from "@/types";
 
@@ -306,12 +307,11 @@ const ClassesList = () => {
                 <div className="actions-row">
                     <div className="search-field">
                         <Search className="search-icon" />
-                        <Input
-                            type="text"
-                            placeholder="Search by name ..."
+                        <SearchInput
+                            placeholder="Search by name..."
                             className="pl-10 w-full"
                             value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
+                            onDebouncedChange={setSearchQuery}
                         />
                     </div>
 

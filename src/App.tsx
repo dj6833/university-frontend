@@ -47,7 +47,8 @@ import EnrollmentConfirm from "./pages/enrollments/confirm";
 import RecommendedClassList from "@/pages/classes/recommendations.tsx";
 
 import { InfrastructureMonitor } from "./components/InfrastructureMonitor";
-import {evaluateInfrastructureLifespan} from "@/lib/infrastructure.ts";
+import { evaluateInfrastructureLifespan } from "@/lib/infrastructure.ts";
+import { GlobalScreenBlocker } from "./components/global-screen-blocker";
 
 /*
 Globally force all browser fetch requests to include cookies, ensuring our session cookie is passed
@@ -338,6 +339,7 @@ function App() {
                             fallback={<Navigate to="/login" />}
                         >
                           <Layout>
+                            <GlobalScreenBlocker />
                             <Outlet />
                           </Layout>
                         </Authenticated>
