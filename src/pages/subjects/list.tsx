@@ -19,10 +19,10 @@ import { CreateButton } from "@/components/refine-ui/buttons/create";
 import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
 import { DataTable } from "@/components/refine-ui/data-table/data-table";
 import { ShowButton } from "@/components/refine-ui/buttons/show";
-
 import { Subject, Department } from "@/types";
 import { DEPARTMENT_OPTIONS } from "@/constants";
 import {useList} from "@refinedev/core";
+import { SearchInput } from "@/components/search-input";
 
 const SubjectListPage = () => {
   useDocumentTitle(`Subjects ${APP_TITLE_SUFFIX}`);
@@ -149,12 +149,11 @@ const SubjectListPage = () => {
                 <div className="actions-row">
                     <div className="search-field">
                         <Search className="search-icon" />
-                        <Input
-                            type="text"
-                            placeholder="Search by name ..."
+                        <SearchInput
+                            placeholder="Search by name..."
                             className="pl-10 w-full"
                             value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
+                            onDebouncedChange={setSearchQuery}
                         />
                     </div>
 

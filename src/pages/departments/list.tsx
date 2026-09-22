@@ -12,6 +12,7 @@ import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
 import { DataTable } from "@/components/refine-ui/data-table/data-table";
 import { ShowButton } from "@/components/refine-ui/buttons/show";
 import { CreateButton } from "@/components/refine-ui/buttons/create";
+import { SearchInput } from "@/components/search-input";
 
 type DepartmentListItem = {
   id: number;
@@ -144,12 +145,11 @@ const DepartmentsList = () => {
         <div className="actions-row">
           <div className="search-field">
             <Search className="search-icon" />
-            <Input
-              type="text"
-              placeholder="Search by name or code..."
-              className="pl-10 w-full"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
+            <SearchInput
+                placeholder="Search by name or code..."
+                className="pl-10 w-full"
+                value={searchQuery}
+                onDebouncedChange={setSearchQuery}
             />
           </div>
           <CreateButton resource="departments" />
