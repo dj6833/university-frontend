@@ -15,6 +15,7 @@ import { DataTable } from "@/components/refine-ui/data-table/data-table";
 import { ShowButton } from "@/components/refine-ui/buttons/show";
 import type { User } from "@/types";
 import {getInitials} from "@/lib/utils.ts";
+import { SearchInput } from "@/components/search-input";
 
 const FacultyList = () => {
   useDocumentTitle(`Staff ${APP_TITLE_SUFFIX}`);
@@ -136,12 +137,11 @@ const FacultyList = () => {
         <div className="actions-row">
           <div className="search-field">
             <Search className="search-icon" />
-            <Input
-              type="text"
-              placeholder="Search by name or email..."
-              className="pl-10 w-full"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
+            <SearchInput
+                placeholder="Search by name or email..."
+                className="pl-10 w-full"
+                value={searchQuery}
+                onDebouncedChange={setSearchQuery}
             />
           </div>
         </div>

@@ -37,6 +37,7 @@ import {
 import { useNavigate } from "react-router";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { SearchInput } from "@/components/search-input";
 
 export const RecommendationsBanner = () => {
     const navigate = useNavigate();
@@ -422,12 +423,11 @@ const EnrolmentList = () => {
                 <div className="actions-row">
                     <div className="search-field">
                         <Search className="search-icon" />
-                        <Input
-                            type="text"
+                        <SearchInput
                             placeholder="Search name or subject..."
-                            className="pl-10 w-full h-9"
+                            className="pl-10 w-full"
                             value={searchQuery}
-                            onChange={(event) => setSearchQuery(event.target.value)}
+                            onDebouncedChange={setSearchQuery}
                         />
                     </div>
                 </div>
