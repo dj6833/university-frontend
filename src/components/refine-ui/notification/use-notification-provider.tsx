@@ -23,13 +23,13 @@ const cleanToastText = (text: string | undefined): string | undefined => {
 export function useNotificationProvider(): NotificationProvider {
   return {
     open: ({
-             key,
-             type,
-             message,
-             description,
-             undoableTimeout,
-             cancelMutation,
-           }) => {
+      key,
+      type,
+      message,
+      description,
+      undoableTimeout,
+      cancelMutation,
+    }) => {
       switch (type) {
         case "success":
           toast.success(message, {
@@ -62,20 +62,20 @@ export function useNotificationProvider(): NotificationProvider {
           const toastId = key || Date.now();
 
           toast(
-              () => (
-                  <UndoableNotification
-                      message={message}
-                      description={description}
-                      undoableTimeout={undoableTimeout}
-                      cancelMutation={cancelMutation}
-                      onClose={() => toast.dismiss(toastId)}
-                  />
-              ),
-              {
-                id: toastId,
-                duration: (undoableTimeout || 5) * 1000,
-                unstyled: true,
-              }
+            () => (
+              <UndoableNotification
+                message={message}
+                description={description}
+                undoableTimeout={undoableTimeout}
+                cancelMutation={cancelMutation}
+                onClose={() => toast.dismiss(toastId)}
+              />
+            ),
+            {
+              id: toastId,
+              duration: (undoableTimeout || 5) * 1000,
+              unstyled: true,
+            }
           );
           return;
         }
