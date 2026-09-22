@@ -63,15 +63,21 @@ export const SignInForm = () => {
 
   return (
     <div className="sign-in">
-      <div className="logo">
-        <img src="/logo.png" alt="Logo" />
-      </div>
-
       <Card className="card">
+        <div className="flex flex-col items-center text-center w-full mb-3 space-y-1">
+          <div className="logo">
+            <img src="/logo.png" alt="Logo" />
+          </div>
+          <h2 className="font-bold text-base tracking-tight text-slate-900 dark:text-zinc-100 leading-none">
+            University of Oakfield
+          </h2>
+          <span className="text-[12px] text-muted-foreground dark:text-zinc-400 font-mono tracking-wider uppercase leading-none opacity-80 mt-0.5">
+      Management System
+    </span>
+        </div>
         <CardHeader className="header">
-          <CardTitle className="title">Sign in</CardTitle>
+          <CardTitle className="title">Sign In</CardTitle>
           <CardDescription className="description">
-            Welcome back
           </CardDescription>
         </CardHeader>
 
