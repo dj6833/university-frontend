@@ -14,6 +14,7 @@ import {
 } from "@refinedev/core";
 import { ArrowLeftIcon } from "lucide-react";
 import { EditButton } from "../buttons/edit";
+import { useTodoToast } from "@/hooks/use-todo-toast";
 
 type ShowViewProps = PropsWithChildren<{
   className?: string;
@@ -41,6 +42,7 @@ export const ShowViewHeader = ({
   const back = useBack();
 
   const getUserFriendlyName = useUserFriendlyName();
+  const todo = useTodoToast();
 
   const { resource, identifier } = useResourceParams({
     resource: resourceFromProps,
@@ -91,6 +93,10 @@ export const ShowViewHeader = ({
             variant="outline"
             recordItemId={recordItemId}
             resource={resourceName}
+            onClick={(e) => {
+                const formattedName = resourceName ? resourceName.charAt(0).toUpperCase() + resourceName.slice(1) : "Record";
+                todo(e, `Edit ${formattedName} feature is coming soon!`);
+            }}
           />
         </div>
       </div>

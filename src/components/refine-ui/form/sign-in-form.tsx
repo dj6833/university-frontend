@@ -27,6 +27,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useLink, useLogin } from "@refinedev/core";
+import { useTodoToast } from "@/hooks/use-todo-toast.ts"
 
 const signInSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -37,6 +38,9 @@ const signInSchema = z.object({
 type SignInFormValues = z.infer<typeof signInSchema>;
 
 export const SignInForm = () => {
+
+  const todo = useTodoToast();
+
   const Link = useLink();
 
   const { mutate: login, isPending: isLoggingIn } = useLogin();
@@ -108,27 +112,28 @@ export const SignInForm = () => {
               />
 
               <div className="row">
-                <FormField
-                  control={form.control}
-                  name="rememberMe"
-                  render={({ field }) => (
-                    <FormItem className="remember">
-                      <FormControl>
-                <Checkbox
-                  id="remember"
-                          checked={field.value}
-                  onCheckedChange={(checked) =>
-                            field.onChange(
-                              checked === "indeterminate" ? false : checked
-                            )
-                  }
-                />
-                      </FormControl>
-                      <FormLabel htmlFor="remember">Remember me</FormLabel>
-                    </FormItem>
-                )}
-                />
-                <Link to="/forgot-password" className="forgot-link">
+                {/* Hide Remember-me checkbox for now (instead of adding a todo-toast to this checkbox) */}
+                {/*<FormField*/}
+                {/*  control={form.control}*/}
+                {/*  name="rememberMe"*/}
+                {/*  render={({ field }) => (*/}
+                {/*    <FormItem className="remember">*/}
+                {/*      <FormControl>*/}
+                {/*<Checkbox*/}
+                {/*  id="remember"*/}
+                {/*          checked={field.value}*/}
+                {/*  onCheckedChange={(checked) =>*/}
+                {/*            field.onChange(*/}
+                {/*              checked === "indeterminate" ? false : checked*/}
+                {/*            )*/}
+                {/*  }*/}
+                {/*/>*/}
+                {/*      </FormControl>*/}
+                {/*      <FormLabel htmlFor="remember">Remember me</FormLabel>*/}
+                {/*    </FormItem>*/}
+                {/*)}*/}
+                {/*/>*/}
+                <Link to="/forgot-password" className="forgot-link" onClick={(e: React.MouseEvent<HTMLAnchorElement>) => todo(e, "Forgot password feature is coming soon!")}>
                 <span>Forgot password</span>
                   <CircleHelp />
               </Link>
@@ -156,6 +161,7 @@ export const SignInForm = () => {
                   variant="outline"
                     className="social-button"
                   type="button"
+                  onClick={(e) => todo(e, "Google Sign-In feature is coming soon!")}
                 >
                   <svg
                     width="21"
@@ -175,6 +181,7 @@ export const SignInForm = () => {
                   variant="outline"
                     className="social-button"
                   type="button"
+                  onClick={(e) => todo(e, "GitHub Sign-In feature is coming soon!")}
                 >
                   <svg
                     width="21"
