@@ -43,6 +43,13 @@ export function DataTable<TData extends BaseRecord>({
     },
   } = table;
 
+  const handlePageSizeChange = (newSize: number) => {
+    // If user on page>1 and then increases pageSize, current_page_no may not exist and server returns blank result set
+    // Avoid this by forcing the page back to p1 if user adjusts the pageSize
+    setCurrentPage(1);
+    setPageSize(newSize);
+  };
+
   const columns = getAllColumns();
   const leafColumns = table.reactTable.getAllLeafColumns();
   const isLoading = tableQuery.isLoading;
@@ -212,7 +219,7 @@ export function DataTable<TData extends BaseRecord>({
           pageCount={pageCount}
           setCurrentPage={setCurrentPage}
           pageSize={pageSize}
-          setPageSize={setPageSize}
+          setPageSize={handlePageSizeChange}
           total={tableQuery.data?.total}
           variant={paginationVariant}
         />
