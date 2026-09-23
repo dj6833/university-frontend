@@ -4,6 +4,8 @@ import { CircleHelp } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { useEffect } from "react";
+import { useSearchParams } from "react-router";
 
 import { InputPassword } from "@/components/refine-ui/form/input-password";
 import { Button } from "@/components/ui/button";
@@ -28,6 +30,7 @@ import {
 } from "@/components/ui/form";
 import { useLink, useLogin } from "@refinedev/core";
 import { useTodoToast } from "@/hooks/use-todo-toast.ts"
+import {toast} from "sonner";
 
 const signInSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -38,11 +41,9 @@ const signInSchema = z.object({
 type SignInFormValues = z.infer<typeof signInSchema>;
 
 export const SignInForm = () => {
-
   const todo = useTodoToast();
-
   const Link = useLink();
-
+  const [searchParams] = useSearchParams();
   const { mutate: login, isPending: isLoggingIn } = useLogin();
 
   const form = useForm<SignInFormValues>({
@@ -52,7 +53,26 @@ export const SignInForm = () => {
       password: "",
       rememberMe: false,
     },
-    });
+  });
+
+  useEffect(() => {
+    const shouldPopulate = searchParams.get("populateLoginCreds");
+    const urlUser = searchParams.get("u");
+    const urlPass = searchParams.get("p");
+
+    if (shouldPopulate === "y" && urlUser && urlPass) {
+      form.setValue("email", urlUser, { shouldValidate: true });
+      form.setValue("password", urlPass, { shouldValidate: true });
+
+      // Trigger a custom notification toast letting the user know
+      toast.success("Login credentials from link applied! Click 'Sign in' to continue", {
+        richColors: true,
+      });
+
+      // Clean the credentials out of the browser address bar for security
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [searchParams, form, toast]);
 
   const handleSignIn = async (values: SignInFormValues) => {
     login({
