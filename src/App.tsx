@@ -223,6 +223,7 @@ function App() {
                   syncWithLocation: true,
                   warnWhenUnsavedChanges: true,
                   projectId: "mG476x-8Tj0nI-6mS6lr",
+                  disableTelemetry: true,
                   reactQuery: {
                     clientConfig: {
                       defaultOptions: {
