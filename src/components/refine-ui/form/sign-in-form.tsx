@@ -57,15 +57,17 @@ export const SignInForm = () => {
 
   useEffect(() => {
     const shouldPopulate = searchParams.get("populateLoginCreds");
-    const urlUser = searchParams.get("u");
+    const urlEmail = searchParams.get("e");
     const urlPass = searchParams.get("p");
+    const urlRole = searchParams.get("r");
 
-    if (shouldPopulate === "y" && urlUser && urlPass) {
-      form.setValue("email", urlUser, { shouldValidate: true });
+    if (shouldPopulate === "y" && urlEmail && urlPass && urlRole) {
+      form.setValue("email", urlEmail, { shouldValidate: true });
       form.setValue("password", urlPass, { shouldValidate: true });
 
       // Trigger a custom notification toast letting the user know
-      toast.success("Login credentials from link applied! Click 'Sign in' to continue", {
+      toast.success(`Login credentials for a '${urlRole}' user profile have been auto-completed from the link you followed!`, {
+        id: "auto-populate-login-toast", //use an id to prevent toast appearing multiple times for the same alert
         richColors: true,
       });
 
