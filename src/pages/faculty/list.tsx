@@ -132,7 +132,7 @@ const FacultyList = () => {
       <h1 className="page-title">Staff</h1>
 
       <div className="intro-row">
-        <p>Browse and manage staff members.</p>
+        <p>Browse and manage staff members</p>
 
         <div className="actions-row">
           <div className="search-field">
