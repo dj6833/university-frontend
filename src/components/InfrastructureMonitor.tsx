@@ -9,7 +9,7 @@ interface ServiceState {
     url: string;
 }
 
-const WARMUP_OVERALL_TIMEOUT_SECONDS = 70;
+const WARMUP_OVERALL_TIMEOUT_SECONDS = 80;
 const WARMUP_REQUEST_POLLING_INTERVAL_MS = 4000;
 const WARMUP_MAX_POLLING_ATTEMPTS = Math.ceil((WARMUP_OVERALL_TIMEOUT_SECONDS * 1000) / WARMUP_REQUEST_POLLING_INTERVAL_MS);
 const HEALTH_WIDGET_AUTO_CLOSE_DELAY_MS = 3000;
@@ -228,7 +228,7 @@ export const InfrastructureMonitor: React.FC = () => {
             </div>
 
             <p className="text-[11px] text-muted-foreground m-0 mb-4 leading-relaxed">
-                Thanks for visiting this project site. It runs on services that sleep during inactivity to save resources, so we periodically check they are awake for you. Please be patient, this can take up to a minute.
+                Thanks for visiting this project site. It runs on services that sleep during inactivity to save resources, so we periodically check they are awake for you. Please be patient, this usually takes under a minute
             </p>
 
             <ul className="list-none p-0 m-0 mb-5">
