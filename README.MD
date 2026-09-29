@@ -2,17 +2,8 @@
 
 This repository contains the client-side decoupled user interface for the University Management System.
 
-↩️ **[Return to Main Profile](https://github.com)** for an overview of the University Management System project.
-
-
-> ℹ️ **[Return to Main Profile](https://github.com)** for an overview of the University Management System project.
-
 
 > ↩️ **[Return to Main Profile](https://github.com)** for an overview of the University Management System project.
-
-> does this show in a box?
-
-<sub>↩️ **[Return to Main Profile](https://github.com)** for an overview of the University Management System project.</sub>
 
 
 ## 🛠️ Tech Stack
