@@ -1,48 +1,43 @@
-# classroom-frontend
+# University Management System - Frontend Application
 
-<div align="center" style="margin: 30px;">
-    <a href="https://refine.dev">
-    <img alt="refine logo" src="https://refine.ams3.cdn.digitaloceanspaces.com/readme/refine-readme-banner.png">
-    </a>
-</div>
-<br/>
+This repository contains the client-side decoupled user interface for the University Management System.
 
-This [Refine](https://github.com/refinedev/refine) project was generated with [create refine-app](https://github.com/refinedev/refine/tree/master/packages/create-refine-app).
+> [!NOTE]
+>
+> For an introduction and overview of the University Management System project, please first visit my **[Profile Page](https://github.com/dj6833)**
 
-## Getting Started
+## 🛠️ Tech Stack
 
-A React Framework for building internal tools, admin panels, dashboards & B2B apps with unmatched flexibility ✨
+React | TypeScript | Vite | Refine | TanStack | Tailwind CSS & shadcn/ui | Zod
 
-Refine's hooks and components simplifies the development process and eliminates the repetitive tasks by providing industry-standard solutions for crucial aspects of a project, including authentication, access control, routing, networking, state management, and i18n.
+## 🏁 Getting Started
+1. Clone this repository to your machine
+2. Install dependencies via your terminal: `npm install`
+3. Configure your environment variables file by copying the `.env.example` file, rename the copy to `.env` and update this to reference your Backend API endpoints
+4. Run the development server to view the site locally
 
-## Available Scripts
+## 📜 Available Scripts
 
 ### Running the development server.
 
 ```bash
-    npm run dev
+npm run dev
 ```
 
 ### Building for production.
 
 ```bash
-    npm run build
+npm run build
 ```
 
 ### Running the production server.
 
 ```bash
-    npm run start
+npm run start
 ```
 
-## Learn More
+## ⚖️ License
 
-To learn more about **Refine**, please check out the [Documentation](https://refine.dev/docs)
+This project is published under the terms of the **GNU General Public License v3.0 (GPL-3.0)**.
 
-- **REST Data Provider** [Docs](https://refine.dev/docs/core/providers/data-provider/#overview)
-- **shadcn/ui** [Docs](https://refine.dev/docs/guides-concepts/general-concepts/#headless-concept)
-- **React Router** [Docs](https://refine.dev/docs/core/providers/router-provider/)
-
-## License
-
-MIT
+For full license details, please see the accompanying `LICENSE` file included in the root directory of this repository.
