@@ -4,7 +4,7 @@ This repository contains the client-side decoupled user interface for the Univer
 
 > [!NOTE]
 > 
-> For an introduction and overview of the University Management System project, please first visit my **[Profile Page](https://github.com)**
+> For an introduction and overview of the University Management System project, please first visit my **[Profile Page](https://github.com/dj6833)**
 
 ## 🛠️ Tech Stack
 
