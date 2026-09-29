@@ -1,8 +1,11 @@
 # University Management System — Frontend Application 💻
 
-This repository contains the client-side decoupled user interface for the University Management System. It serves as a testing ground for evaluating modern, component-driven frontend frameworks and atomic state management workflows.
+This repository contains the client-side decoupled user interface for the University Management System.
 
-### 🛠️ Core Tooling & Frameworks
+### 🛠️ Tech Stack
+
+React | TypeScript | Vite | Refine | TanStack | Tailwind CSS & shadcn/ui | Zod
+
 * **React & Vite:** Ultra-fast bundling, local hot-reloading module architecture
 * **Refine:** Enterprise-grade CRUD architecture mapping data views smoothly
 * **TanStack:** Client-side cache validation and declarative data mutation query states
