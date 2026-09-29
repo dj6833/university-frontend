@@ -2,6 +2,10 @@
 
 This repository contains the client-side decoupled user interface for the University Management System.
 
+> [!NOTE]
+> **Looking for the full project architecture?**
+> Please **[Return to Main Profile Hub](https://github.com)** to review comprehensive multi-service infrastructure diagrams, database migration strategies, and live staging system access credentials.
+
 
 > ↩️ **[Return to Main Profile](https://github.com)** for an overview of the University Management System project.
 
