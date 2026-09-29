@@ -1,4 +1,4 @@
-# University Management System - Frontend Application 💻
+# University Management System - Frontend Application
 
 This repository contains the client-side decoupled user interface for the University Management System.
 
