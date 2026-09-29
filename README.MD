@@ -1,4 +1,4 @@
-# University Management System — Frontend Application 💻
+# University Management System - Frontend Application 💻
 
 This repository contains the client-side decoupled user interface for the University Management System.
 
@@ -13,7 +13,7 @@ React | TypeScript | Vite | Refine | TanStack | Tailwind CSS & shadcn/ui | Zod
 ## 🏁 Getting Started
 1. Clone this repository to your machine
 2. Install dependencies via your terminal: `npm install`
-3. Configure local variables by copying `.env.example`, rename the copy to `.env` and update this to reference your Backend API endpoints
+3. Configure your environment variables file by copying the `.env.example` file, rename the copy to `.env` and update this to reference your Backend API endpoints
 4. Run the development server to view the site locally
 
 ## 📜 Available Scripts
