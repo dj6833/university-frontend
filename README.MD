@@ -4,6 +4,8 @@ This repository contains the client-side decoupled user interface for the Univer
 
 ↩️ **[Return to Main Profile](https://github.com)** for an overview of the University Management System project.
 
+> ℹ️ **[Return to Main Profile](https://github.com)** for an overview of the University Management System project.
+
 ## 🛠️ Tech Stack
 
 React | TypeScript | Vite | Refine | TanStack | Tailwind CSS & shadcn/ui | Zod
