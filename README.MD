@@ -2,24 +2,49 @@
 
 This repository contains the client-side decoupled user interface for the University Management System.
 
-### 🛠️ Tech Stack
+## 🛠️ Tech Stack
 
 React | TypeScript | Vite | Refine | TanStack | Tailwind CSS & shadcn/ui | Zod
 
-* **React & Vite:** Ultra-fast bundling, local hot-reloading module architecture
-* **Refine:** Enterprise-grade CRUD architecture mapping data views smoothly
-* **TanStack:** Client-side cache validation and declarative data mutation query states
-* **Tailwind CSS & shadcn/ui:** Modern utility-first layout styling and accessible primitives
-* **Zod:** Client-side boundary schema validation forcing safe data posting
+## Getting Started
+1. Clone this repository to your machine
+2. Install dependencies via your terminal: `npm install`
+3. Configure your local variables file:
+- Create a copy of the `.env.example` file, rename this copy as `.env` and edit this to reference your Backend API endpoints
+4. Launch the local development pipeline: `npm run dev`
+
+
+## Available Scripts
+
+### Running the development server.
+
+```bash
+    npm run dev
+```
+
+### Building for production.
+
+```bash
+    npm run build
+```
+
+### Running the production server.
+
+```bash
+    npm run start
+```
+
 
 ### 🚀 Local Development Setup
-1. Clone this repository natively to your machine.
+1. Clone this repository to your machine
 2. Install dependencies via your terminal: `npm install`
 3. Configure your local variables file by creating a `.env` block referencing the primary Backend API endpoints.
 4. Launch the local development pipeline: `npm run dev`
 
 ---
-↩️ **Return to Main Profile:** To review the full multi-repository infrastructure matrix, architecture diagrams, and system access details, visit the primary [GitHub Profile Hub](https://github.com).
+↩️ **Return to Main Profile:** For an overview of the University Management System project, visit the primary [GitHub Profile Hub](https://github.com).
+
+To review the full multi-repository infrastructure matrix, architecture diagrams, and system access details, visit the primary [GitHub Profile Hub](https://github.com).
 
 
 # classroom-frontend-a
