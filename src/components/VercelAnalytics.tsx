@@ -5,13 +5,10 @@ import { Analytics } from "@vercel/analytics/react";
 export function VercelAnalytics() {
   const location = useLocation();
   const rawPath = location.pathname;
-
-  // 1. Grab the active resource details using your working hook setup
   const { resource, action, id } = useResourceParams();
 
   let routeTemplate = rawPath;
 
-  // 2. Safely translate the active resource into a clean Vercel tracking pattern
   if (resource && action) {
     // Look up meta.route if available, otherwise default to the resource name string
     const resourcePath = (resource.meta as any)?.route || resource.name;
