@@ -5,26 +5,29 @@ import { Analytics } from "@vercel/analytics/react";
 export function VercelAnalytics() {
   const location = useLocation();
   const rawPath = location.pathname;
-  const { resource, action, id } = useResourceParams();
+
+  const { resource, action } = useResourceParams();
 
   let routeTemplate = rawPath;
 
   if (resource && action) {
-    // Look up meta.route if available, otherwise default to the resource name string
-    const resourcePath = (resource.meta as any)?.route || resource.name;
+    // Look up the exact layout string (e.g. resource['show'] or resource['list'])
+    const matchedPath = resource[action as keyof typeof resource];
 
-    if (action === "list") {
-      routeTemplate = `/${resourcePath}`;
-    } else if (id) {
-      // Cleanly translates variable details like "/classes/show/21119" to "/classes/show/:id"
-      routeTemplate = `/${resourcePath}/${action}/:id`;
-    } else {
-      routeTemplate = `/${resourcePath}/${action}`;
+    if (typeof matchedPath === "string") {
+      routeTemplate = matchedPath;
+    } else if (resource.meta && typeof resource.meta === "object") {
+      // Fallback check for custom action routes nested in metadata configurations
+      const customRoutes = (resource.meta as any).routes || {};
+      if (typeof customRoutes[action] === "string") {
+        routeTemplate = customRoutes[action];
+      }
     }
   }
 
   return (
       <Analytics
+          key={rawPath} // Forces Vercel to fire telemetry instantly on every page hop
           path={rawPath}
           route={routeTemplate}
       />
