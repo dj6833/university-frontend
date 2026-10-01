@@ -1,33 +1,50 @@
+import { useEffect } from "react";
 import { useLocation } from "react-router";
-import { useResourceParams } from "@refinedev/core";
 import { Analytics } from "@vercel/analytics/react";
 
 export function VercelAnalytics() {
   const location = useLocation();
   const rawPath = location.pathname;
 
-  const { resource, action } = useResourceParams();
+  // 1. Cleanly parse out variable ID fields by splitting the path array
+  const pathSegments = rawPath.split("/").filter(Boolean);
 
   let routeTemplate = rawPath;
 
-  if (resource && action) {
-    // Look up the exact layout string (e.g. resource['show'] or resource['list'])
-    const matchedPath = resource[action as keyof typeof resource];
+  // 2. Automatically catch patterns like /resource/action/id (e.g. /enrollments/create/21225)
+  if (pathSegments.length >= 3) {
+    const [resource, action, idOrSlug] = pathSegments;
 
-    if (typeof matchedPath === "string") {
-      routeTemplate = matchedPath;
-    } else if (resource.meta && typeof resource.meta === "object") {
-      // Fallback check for custom action routes nested in metadata configurations
-      const customRoutes = (resource.meta as any).routes || {};
-      if (typeof customRoutes[action] === "string") {
-        routeTemplate = customRoutes[action];
+    // Check if the 3rd item is a numeric database identifier or a token string
+    const isParam = !isNaN(Number(idOrSlug)) || idOrSlug.length > 10 || idOrSlug.includes("-");
+
+    if (isParam) {
+      // 🎯 THE EXPANDED SEGMENT BLOCK:
+      // If the verb is "create", explicitly name the token :classId so it stays separated from standard views
+      if (action === "create") {
+        routeTemplate = `/${resource}/create/:classId`;
+      } else {
+        // Fallback for /classes/show/:id, /departments/edit/:id, etc.
+        routeTemplate = `/${resource}/${action}/:id`;
       }
     }
   }
+  // 3. Catch direct list parameters / layouts (e.g. /departments)
+  else if (pathSegments.length === 1) {
+    routeTemplate = `/${pathSegments[0]}`;
+  }
+
+  // 🔍 FORCE CONSOLE LOGS VISIBILITY FOR LOCAL TESTING
+  useEffect(() => {
+    console.warn("🎯 [VERCEL ANALYTICS MONITOR] ROUTE RE-CALCULATION:", {
+      "PAGES (Raw URL)": rawPath,
+      "ROUTES (Clean Group)": routeTemplate
+    });
+  }, [rawPath, routeTemplate]);
 
   return (
       <Analytics
-          key={rawPath} // Forces Vercel to fire telemetry instantly on every page hop
+          key={rawPath} // Re-bind layout instances cleanly on every page hop
           path={rawPath}
           route={routeTemplate}
       />
