@@ -50,7 +50,7 @@ import { InfrastructureMonitor } from "./components/InfrastructureMonitor";
 import { evaluateInfrastructureLifespan } from "@/lib/infrastructure.ts";
 import { GlobalScreenBlocker } from "./components/global-screen-blocker";
 
-import { Analytics } from '@vercel/analytics/react';
+import { VercelAnalytics } from "./components/VercelAnalytics.tsx";
 
 /*
 Globally force all browser fetch requests to include cookies, ensuring our session cookie is passed
@@ -171,7 +171,7 @@ function App() {
   const schoolName = "University of Oakfield";
   return (
     <BrowserRouter>
-      <Analytics />
+      <VercelAnalytics />
       {/*<PageTitleUpdater />*/}
       <RefineKbarProvider>
         <ThemeProvider>
