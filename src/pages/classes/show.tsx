@@ -1,7 +1,7 @@
 import { useDocumentTitle } from "@refinedev/react-router";
-import {APP_TITLE_SUFFIX, CLASS_CAPACITY_CONFIG} from "@/constants";
+import { APP_TITLE_SUFFIX, CLASS_CAPACITY_CONFIG} from "@/constants";
 import { AdvancedImage } from "@cloudinary/react";
-import {useShow, useLink, useGetToPath } from "@refinedev/core";
+import { useShow, useLink, useGetToPath, useGetIdentity, CanAccess, useCan } from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
@@ -22,6 +22,7 @@ import { bannerPhoto } from "@/lib/cloudinary";
 import {ClassDetails} from "@/types";
 import {getInitials} from "@/lib/utils.ts";
 import { CreateButton } from "@/components/refine-ui/buttons/create";
+import type { User } from "@/types";
 
 type ClassUser = {
   id: string;
@@ -33,6 +34,13 @@ type ClassUser = {
 
 const ClassesShow = () => {
   useDocumentTitle(`Class Details ${APP_TITLE_SUFFIX}`);
+   const { data: user } = useGetIdentity<User>();
+   const { data: canViewStudents } = useCan({
+        resource: "student-panel",
+        action: "view",
+        params: { user },
+    });
+
   const { id } = useParams();
   const classId = id ?? "";
 
@@ -99,6 +107,10 @@ const ClassesShow = () => {
     columns: studentColumns,
     refineCoreProps: {
       resource: `classes/${classId}/users`,
+      queryOptions: {
+        // stays idle until access control provider returns true
+        enabled: !!canViewStudents?.can,
+      },
       pagination: {
         pageSize: 10,
         mode: "server",
@@ -273,14 +285,28 @@ const ClassesShow = () => {
             )}
         </Card>
 
-      <Card className="hover:shadow-md transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Enrolled Students</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTable table={studentsTable} paginationVariant="simple" />
-        </CardContent>
-            </Card>
+
+        <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Enrolled Students</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <CanAccess
+                    resource="student-panel"
+                    action="view"
+                    params={{user}}
+                    fallback={
+                        <div
+                            className="w-full text-center p-4 rounded-xl border border-amber-100 bg-amber-50/50 text-amber-700 text-sm font-semibold tracking-wide">
+                            <span>🔒️</span> Sorry, this section is restricted for your user profile.
+                        </div>
+                    }
+                >
+                    <DataTable table={studentsTable} paginationVariant="simple"/>
+                </CanAccess>
+            </CardContent>
+        </Card>
+
         </ShowView>
   );
 };
