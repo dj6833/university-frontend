@@ -1,6 +1,6 @@
 import { useDocumentTitle } from "@refinedev/react-router";
 import {APP_TITLE_SUFFIX, UI_LABELS} from "@/constants";
-import { useLink, useShow } from "@refinedev/core";
+import {CanAccess, useCan, useGetIdentity, useLink, useShow} from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
@@ -15,7 +15,7 @@ import {
   ShowView,
   ShowViewHeader,
 } from "@/components/refine-ui/views/show-view";
-import type { Department, Subject } from "@/types";
+import type {Department, Subject, User} from "@/types";
 import {getInitials} from "@/lib/utils.ts";
 
 type SubjectDetails = {
@@ -50,6 +50,12 @@ type SubjectUser = {
 
 const SubjectsShow = () => {
   useDocumentTitle(`Subject Details ${APP_TITLE_SUFFIX}`);
+  const { data: user } = useGetIdentity<User>();
+  const { data: canViewStudents } = useCan({
+    resource: "student-panel",
+    action: "view",
+    params: { user },
+  });
   const Link = useLink();
   const { id } = useParams();
   const subjectId = id ?? "";
@@ -224,6 +230,10 @@ const SubjectsShow = () => {
     columns: userColumns,
     refineCoreProps: {
       resource: `subjects/${subjectId}/users`,
+      queryOptions: {
+        // stays idle until access control provider returns true
+        enabled: !!canViewStudents?.can,
+      },
       pagination: {
         pageSize: 10,
         mode: "server",
@@ -323,7 +333,19 @@ const SubjectsShow = () => {
             <CardTitle>Students</CardTitle>
           </CardHeader>
           <CardContent>
-            <DataTable table={studentsTable} paginationVariant="simple" />
+            <CanAccess
+                resource="student-panel"
+                action="view"
+                params={{user}}
+                fallback={
+                  <div
+                      className="w-full text-center p-4 rounded-xl border border-amber-100 bg-amber-50/50 text-amber-700 text-sm font-semibold tracking-wide">
+                    <span>🔒️</span> Sorry, this section is restricted for your user profile.
+                  </div>
+                }
+            >
+              <DataTable table={studentsTable} paginationVariant="simple"/>
+            </CanAccess>
           </CardContent>
         </Card>
       </div>

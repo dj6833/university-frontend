@@ -51,7 +51,8 @@ import { evaluateInfrastructureLifespan } from "@/lib/infrastructure.ts";
 import { GlobalScreenBlocker } from "./components/global-screen-blocker";
 
 import { VercelAnalytics } from "./components/VercelAnalytics.tsx";
-import { vercelAnalyticsAuditProvider} from "@/providers/vercelAnalyticsAuditProvider.ts";
+import { vercelAnalyticsAuditProvider} from "./providers/vercelAnalyticsAuditProvider.ts";
+import { accessControlProvider } from "./providers/accessControlProvider";
 
 /*
 Globally force all browser fetch requests to include cookies, ensuring our session cookie is passed
@@ -184,6 +185,7 @@ function App() {
                 notificationProvider={useNotificationProvider()}
                 routerProvider={routerProvider}
                 auditLogProvider={vercelAnalyticsAuditProvider}
+                accessControlProvider={accessControlProvider}
                   // DocumentTitleHandler={({ resource, action }) => {
                 //   const siteName = "University of Oakfield";
                 //

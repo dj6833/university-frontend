@@ -1,6 +1,6 @@
 import { useDocumentTitle } from "@refinedev/react-router";
-import {APP_TITLE_SUFFIX, UI_LABELS} from "@/constants";
-import { useShow } from "@refinedev/core";
+import { APP_TITLE_SUFFIX, UI_LABELS} from "@/constants";
+import { CanAccess, useCan, useGetIdentity, useShow} from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { BookOpen, Layers, Users } from "lucide-react";
@@ -16,7 +16,7 @@ import {
   ShowView,
   ShowViewHeader,
 } from "@/components/refine-ui/views/show-view";
-import type { Department } from "@/types";
+import type {Department, User} from "@/types";
 import {getInitials} from "@/lib/utils.ts";
 
 type DepartmentDetails = {
@@ -64,6 +64,12 @@ type DepartmentUser = {
 
 const DepartmentShow = () => {
   useDocumentTitle(`Department Details ${APP_TITLE_SUFFIX}`);
+  const { data: user } = useGetIdentity<User>();
+  const { data: canViewStudents } = useCan({
+    resource: "student-panel",
+    action: "view",
+    params: { user },
+  });
   const { id } = useParams();
   const departmentId = id ?? "";
 
@@ -325,6 +331,10 @@ const DepartmentShow = () => {
     columns: userColumns,
     refineCoreProps: {
       resource: `departments/${departmentId}/users`,
+      queryOptions: {
+        // stays idle until access control provider returns true
+        enabled: !!canViewStudents?.can,
+      },
       pagination: {
         pageSize: 10,
         mode: "server",
@@ -436,7 +446,19 @@ const DepartmentShow = () => {
             <CardTitle>Students</CardTitle>
           </CardHeader>
           <CardContent>
-            <DataTable table={studentsTable} paginationVariant="simple" />
+            <CanAccess
+                resource="student-panel"
+                action="view"
+                params={{user}}
+                fallback={
+                  <div
+                      className="w-full text-center p-4 rounded-xl border border-amber-100 bg-amber-50/50 text-amber-700 text-sm font-semibold tracking-wide">
+                    <span>🔒️</span> Sorry, this section is restricted for your user profile.
+                  </div>
+                }
+            >
+              <DataTable table={studentsTable} paginationVariant="simple"/>
+            </CanAccess>
           </CardContent>
         </Card>
       </div>
