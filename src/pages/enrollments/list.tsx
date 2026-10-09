@@ -227,7 +227,7 @@ export function RowActionsCell({ enrollment }: any) {
                 <DrawerContent className="p-4 pb-6">
                     <DrawerHeader className="text-left px-0 pt-0 pb-4">
                         <DrawerTitle>Class Options</DrawerTitle>
-                        <DrawerDescription>Manage your current schedule settings.</DrawerDescription>
+                        {/*<DrawerDescription>Manage your current schedule settings.</DrawerDescription>*/}
                     </DrawerHeader>
                     <div className="flex flex-col gap-2">
                         <MenuItems />

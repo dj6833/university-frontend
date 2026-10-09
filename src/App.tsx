@@ -21,6 +21,7 @@ import {
   GraduationCap,
   Home,
   Users,
+  FileText
 } from "lucide-react";
 import SubjectsList from "./pages/subjects/list";
 import { Layout } from "./components/refine-ui/layout/layout";
@@ -45,6 +46,8 @@ import EnrollmentsCreate from "./pages/enrollments/create";
 import EnrollmentsJoin from "./pages/enrollments/join";
 import EnrollmentConfirm from "./pages/enrollments/confirm";
 import RecommendedClassList from "@/pages/classes/recommendations.tsx";
+import DocumentsCreate from "@/pages/documents/create";
+import DocumentsList from "@/pages/documents/list";
 
 import { InfrastructureMonitor } from "./components/InfrastructureMonitor";
 import { evaluateInfrastructureLifespan } from "@/lib/infrastructure.ts";
@@ -317,6 +320,15 @@ function App() {
                       hide: true, //don't show in sidebar
                     },
                   },
+                  {
+                    name: "documents",
+                    list: "/documents",
+                    create: "/documents/create",
+                    meta: {
+                      label: "My Documents",
+                      icon: <FileText />,
+                    },
+                  },
                 ]}
               >
                 <Routes>
@@ -352,7 +364,7 @@ function App() {
                           </Layout>
                         </Authenticated>
                       }
-                  >
+                      >
                     <Route path="/" element={<Dashboard />} />
 
                     <Route path="subjects">
@@ -384,6 +396,11 @@ function App() {
                       <Route path="create" element={<ClassesCreate />} />
                       <Route path="show/:id" element={<ClassesShow />} />
                       <Route path="recommendations" element={<RecommendedClassList />} />
+                    </Route>
+
+                    <Route path="documents">
+                      <Route index element={<DocumentsList />} />
+                      <Route path="create" element={<DocumentsCreate  />} />
                     </Route>
                   </Route>
                 </Routes>
