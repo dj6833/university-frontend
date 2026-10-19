@@ -36,6 +36,10 @@ npm run build
 npm run start
 ```
 
+## ✅ Testing
+
+End-to-end tests use Playwright and run automatically in GitHub Actions against the staging deployment. To run them locally: `npm run test:e2e` (see playwright.config.ts for the environment variables it needs). More tests are planned.
+
 ## ⚖️ License
 
 This project is published under the terms of the **GNU General Public License v3.0 (GPL-3.0)**.
