@@ -2,8 +2,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/index.html",
-      "_:comment": "SPA routing: Routes all page views to index.html so React/Vue Router can handle the paths natively without 404 errors."
+      "destination": "/index.html"
     }
   ]
 }
