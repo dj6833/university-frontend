@@ -68,8 +68,6 @@ export const UI_LABELS = {
 
 //validation checks for any env vars can be added here
 const envSchema = z.object({
-    // Strict Toggle: Must be exactly "true" or "false"
-    //VITE_IS_LOCAL: z.enum(["true", "false"]).transform((val) => val === "true"),
     VITE_BACKEND_BASE_URL: z.string().url()
 });
 
@@ -81,9 +79,6 @@ if (!parsedSchema.success) {
     throw new Error("Unable to start app due to invalid environment variables");
 }
 
-// When running locally, use relative URLs to leverage Vite proxy (same-origin, avoids cross-site cookie blocking seen with certain browsers/browser modes)
-//const isLocal = parsedSchema.data.VITE_IS_LOCAL
-
 const getEnvVar = (key: string): string => {
     const value = import.meta.env[key];
     if (!value) {
@@ -94,11 +89,7 @@ const getEnvVar = (key: string): string => {
 export const CLOUDINARY_UPLOAD_URL = getEnvVar("VITE_CLOUDINARY_UPLOAD_URL");
 export const CLOUDINARY_CLOUD_NAME = getEnvVar("VITE_CLOUDINARY_CLOUD_NAME");
 
-// Default to calling api route on the same origin for local development
-// export const BACKEND_BASE_URL = isLocal
-//     ? `${window.location.origin}/api/`
-//     : parsedSchema.data.VITE_BACKEND_BASE_URL
-
+// now using frontend proxy to backend API, so below setting is rerouted via frontend URL
 export const BACKEND_BASE_URL = `${window.location.origin}/api/`;
 
 export const BACKEND_ANALYSIS_SERVICE_URL = getEnvVar("VITE_BACKEND_ANALYSIS_SERVICE_URL");
