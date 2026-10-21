@@ -1,3 +1,23 @@
+/**
+ * ============================================================================
+ * VITE BUILD & DEVELOPMENT CONFIGURATION
+ * ============================================================================
+ *
+ * WHEN THIS RUNS:
+ * This configuration file runs in a Node.js environment every time a Vite
+ * command is executed. This includes local development (`npm run dev`) AND
+ * production compiling (`npm run build`). It does NOT run in the browser.
+ *
+ * WHAT THIS FILE DOES:
+ *  - Plugin Setup: Integrates React (@vitejs/plugin-react) and Tailwind CSS
+ *    v4 (@tailwindcss/vite) compilation tools into the build pipeline.
+ *  - Path Aliasing: Configures the '@/' prefix shortcut to point directly to
+ *    the './src' directory for cleaner import paths.
+ *  - Dev Server Proxying: Intercepts local client requests starting with '/api'
+ *    and proxies them to the backend server (replicating what the frontend proxy
+ *    does in hosted cloud environments via Vercel's middleware.ts file).
+ */
+
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -10,7 +30,6 @@ export default defineConfig(({ mode }) => {
   const rawEnv = loadEnv(mode, process.cwd(), "");
 
   const viteConfigSchema = z.object({
-    //VITE_IS_LOCAL: z.enum(["true", "false"]).transform((val) => val === "true"),
     VITE_BACKEND_BASE_URL: z.string().url(), // Strictly enforces a valid HTTP URL format
   });
 
@@ -21,7 +40,6 @@ export default defineConfig(({ mode }) => {
     throw new Error("Unable to start app due to invalid VITE environment variables");
   }
 
-  //const isLocal = parsed.data.VITE_IS_LOCAL;
   const backendBaseUrl = parsed.data.VITE_BACKEND_BASE_URL;
 
   return {
