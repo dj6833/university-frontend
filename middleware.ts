@@ -13,7 +13,7 @@
  * unless running through Vercel's wrapper (e.g., `npx vercel dev`).
  */
 export const config = {
-    matcher: ['/api/:path*'],
+    matcher: ['/api/:path*', '/api-analysis/:path*'],
 };
 
 export default function middleware(request: Request) {
@@ -22,28 +22,54 @@ export default function middleware(request: Request) {
     //Uncomment to see every incoming network request hitting the proxy:
     //console.log(`[Proxy Intercept] Incoming path: ${url.pathname}${url.search}`);
 
-    const backendBaseUrl = process.env.VITE_BACKEND_BASE_URL;
+    // Backend Analysis Service Proxy (must come above the primary backend '/api' route to avoid pattern-matching errors)
+    if (url.pathname.startsWith('/api-analysis')) {
+        const analysisBaseUrl = process.env.VITE_BACKEND_ANALYSIS_SERVICE_URL;
 
-    if (!backendBaseUrl) {
-        console.error(`[Proxy Error] Missing VITE_BACKEND_BASE_URL environment variable!`);
-        return new Response(
-            JSON.stringify({ error: 'Missing VITE_BACKEND_BASE_URL configuration.' }),
-            { status: 500, headers: { 'content-type': 'application/json' } }
-        );
+        if (!analysisBaseUrl) {
+            console.error(`[Proxy Error] Missing VITE_BACKEND_ANALYSIS_SERVICE_URL environment variable!`);
+            return new Response(
+                JSON.stringify({ error: 'Missing VITE_BACKEND_ANALYSIS_SERVICE_URL configuration.' }),
+                { status: 500, headers: { 'content-type': 'application/json' } }
+            );
+        }
+
+        const cleanPath = url.pathname.replace(/^\/api-analysis/, '');
+        const targetUrl = new URL(`${analysisBaseUrl.replace(/\/$/, '')}${cleanPath}${url.search}`);
+
+        const requestHeaders = new Headers(request.headers);
+        requestHeaders.set('x-middleware-rewrite', targetUrl.toString());
+
+        return new Response(null, {
+            headers: requestHeaders,
+        });
     }
 
-    // Clean the path (remove '/api') and stitch the request seamlessly to the dynamic backend target
-    const cleanPath = url.pathname.replace(/^\/api/, '');
-    const targetUrl = new URL(`${backendBaseUrl.replace(/\/$/, '')}${cleanPath}${url.search}`);
+    // Backend Primary Service Proxy
+    if (url.pathname.startsWith('/api')) {
+        const backendBaseUrl = process.env.VITE_BACKEND_BASE_URL;
 
-    //Uncomment to see exactly what final destination URL Vercel is sending the request to
-    //console.log(`[Proxy Forwarding] Rewriting request to: ${targetUrl.toString()}`);
+        if (!backendBaseUrl) {
+            console.error(`[Proxy Error] Missing VITE_BACKEND_BASE_URL environment variable!`);
+            return new Response(
+                JSON.stringify({error: 'Missing VITE_BACKEND_BASE_URL configuration.'}),
+                {status: 500, headers: {'content-type': 'application/json'}}
+            );
+        }
 
-    // Setup Vercel-native middleware routing headers
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-middleware-rewrite', targetUrl.toString());
+        // Clean the path (remove '/api') and stitch the request seamlessly to the dynamic backend target
+        const cleanPath = url.pathname.replace(/^\/api/, '');
+        const targetUrl = new URL(`${backendBaseUrl.replace(/\/$/, '')}${cleanPath}${url.search}`);
 
-    return new Response(null, {
-        headers: requestHeaders,
-    });
+        //Uncomment to see exactly what final destination URL Vercel is sending the request to
+        //console.log(`[Proxy Forwarding] Rewriting request to: ${targetUrl.toString()}`);
+
+        // Setup Vercel-native middleware routing headers
+        const requestHeaders = new Headers(request.headers);
+        requestHeaders.set('x-middleware-rewrite', targetUrl.toString());
+
+        return new Response(null, {
+            headers: requestHeaders,
+        });
+    }
 }
