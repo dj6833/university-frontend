@@ -54,18 +54,6 @@ import { VercelAnalytics } from "./components/VercelAnalytics.tsx";
 import { vercelAnalyticsAuditProvider} from "./providers/vercelAnalyticsAuditProvider.ts";
 import { accessControlProvider } from "./providers/accessControlProvider";
 
-/*
-Globally force all browser fetch requests to include cookies, ensuring our session cookie is passed
-*/
-const originalFetch = window.fetch;
-window.fetch = async (input, init) => {
-  // Force the Better Auth credentials on ALL outbound requests
-  return originalFetch(input, {
-    ...init,
-    credentials: "include",
-  });
-};
-
 // ==========================================
 // NEW CHILD LAYOUT WRAPPER FOR TRIGGERING BACKEND SERVICE WARMUP
 // ==========================================
