@@ -30,9 +30,7 @@ export default defineConfig(({ mode }) => {
   const rawEnv = loadEnv(mode, process.cwd(), "");
 
   const viteConfigSchema = z.object({
-    // Strictly enforces a valid HTTP URL format
-    VITE_BACKEND_BASE_URL: z.string().url(),
-    VITE_BACKEND_ANALYSIS_SERVICE_URL: z.string().url(),
+    VITE_BACKEND_BASE_URL: z.string().url(), // Strictly enforces a valid HTTP URL format
   });
 
   const parsed = viteConfigSchema.safeParse(rawEnv);
@@ -43,7 +41,6 @@ export default defineConfig(({ mode }) => {
   }
 
   const backendBaseUrl = parsed.data.VITE_BACKEND_BASE_URL;
-  const backendAnalysisBaseUrl = parsed.data.VITE_BACKEND_ANALYSIS_SERVICE_URL;
 
   return {
     plugins: [react(), tailwindcss()],
@@ -54,19 +51,11 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       proxy: {
-        // Specific backend analysis path must be checked first
-        "/api-analysis": {
-          target: backendAnalysisBaseUrl,
-          changeOrigin: true,
-          secure: false,
-          rewrite: (path) => path.replace(/^\/api-analysis/, ""),
-        },
-        // Generic backend primary path checked last
         "/api": {
           target: backendBaseUrl,
           changeOrigin: true,
           secure: false,
-          rewrite: (path) => path.replace(/^\/api/, ""),
+          rewrite: (path) => path.replace(/^\/api/, ""), //required to avoid '/api' duplicating in the URL
         },
       },
     },
