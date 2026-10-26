@@ -4,7 +4,7 @@ import { CircleHelp } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSearchParams } from "react-router";
 
 import { InputPassword } from "@/components/refine-ui/form/input-password";
@@ -76,16 +76,6 @@ export const SignInForm = () => {
     }
   }, [searchParams, form, toast]);
 
-  // Display any auth notice flagged by unauthorised requests within app
-  const [notice, setNotice] = useState<string | null>(null);
-  useEffect(() => {
-    const n = sessionStorage.getItem("auth_notice");
-    if (n) {
-      sessionStorage.removeItem("auth_notice");
-      setNotice(n);
-    }
-  }, []);
-
   const handleSignIn = async (values: SignInFormValues) => {
     login({
       email: values.email,
@@ -114,14 +104,6 @@ export const SignInForm = () => {
         </CardHeader>
 
         <CardContent className="content">
-          {notice && (
-              <div role="alert"
-                   className="mb-4 rounded-md border border-primary/20 bg-primary/10 p-3 text-center shadow-xs">
-                <p className="text-sm font-semibold text-primary">
-                  {notice}
-                </p>
-              </div>
-          )}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSignIn)} className="form">
               <FormField
