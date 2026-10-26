@@ -21,9 +21,10 @@
         }
       ]
     }
-  ],"rewrites": [
+  ],
+  "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!api|api-analysis|assets|.*\\.(?:ico|png|webp|jpg|jpeg|svg|json|webmanifest)).*)",
       "destination": "/index.html"
     }
   ]
