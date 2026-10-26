@@ -92,6 +92,6 @@ export const CLOUDINARY_CLOUD_NAME = getEnvVar("VITE_CLOUDINARY_CLOUD_NAME");
 // now using frontend proxy to backend API, so below setting is rerouted via frontend URL
 export const BACKEND_BASE_URL = `${window.location.origin}/api/`;
 
-export const BACKEND_ANALYSIS_SERVICE_URL = `${window.location.origin}/api-analysis/`
+export const BACKEND_ANALYSIS_SERVICE_URL = getEnvVar("VITE_BACKEND_ANALYSIS_SERVICE_URL");
 export const APP_TITLE_SUFFIX = import.meta.env.VITE_APP_TITLE_SUFFIX;
 export const CLOUDINARY_UPLOAD_PRESET = getEnvVar("VITE_CLOUDINARY_UPLOAD_PRESET") ;
