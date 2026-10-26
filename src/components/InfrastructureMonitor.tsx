@@ -40,7 +40,7 @@ export const InfrastructureMonitor: React.FC = () => {
                     return prev.map((s) => s.id === id ? { ...s, status: "loading" as const } : s);
                 });
 
-                const response = await fetch(url, { method: "GET", cache: 'no-store', signal });
+                const response = await fetch(url, { method: "GET", mode: "cors", signal });
 
                 if (response.status === 404) {
                     throw new Error("Target endpoint pending");
