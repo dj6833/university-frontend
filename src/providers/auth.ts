@@ -1,6 +1,66 @@
 import type { AuthProvider } from "@refinedev/core";
-import { User, SignUpPayload } from "@/types";
+import { SignUpPayload } from "@/types";
 import { authClient } from "@/lib/auth-client";
+import { z } from "zod";
+
+let lastServerCheckAt = 0;
+const CACHE_MS = 30_000; // 30-second validation window for checking server session state
+
+const UserProfileSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  image: z.string().refine((val) => {
+    // Empty image fields are valid (e.g., users without custom avatars)
+    if (!val) return true;
+
+    try {
+      // Force HTTPS check natively during string resolution
+      const secureUrl = val.startsWith("http://") ? val.replace("http://", "https://") : val;
+      const parsedUrl = new URL(secureUrl);
+      const hostname = parsedUrl.hostname;
+      //Ensure the hostname itself is cloudinary
+      const isCloudinary = hostname === "cloudinary.com" || hostname.endsWith(".cloudinary.com");
+
+      // Returns true if safe, false triggers an instant structural rejection
+      return hostname === "cloudinary.com" || hostname.endsWith(".cloudinary.com");
+    } catch (e) {
+      return false;
+    }
+  }),
+  role: z.string().min(1),
+});
+
+export type UserProfile = z.infer<typeof UserProfileSchema>;
+
+const localSessionCookieName = "localSessionHint=";
+
+const parseSessionCookieHint = (): UserProfile | null => {
+  if (typeof document === "undefined") return null;
+
+  const decodedCookie = decodeURIComponent(document.cookie);
+  const cookieArray = decodedCookie.split(";");
+
+  for (let i = 0; i < cookieArray.length; i++) {
+    let cookie = cookieArray[i].trim();
+    if (cookie.indexOf(localSessionCookieName) === 0) {
+      try {
+        const rawJson = cookie.substring(localSessionCookieName.length);
+        const parsedRaw = JSON.parse(rawJson);
+        const result = UserProfileSchema.safeParse(parsedRaw);
+
+        if (result.success) {
+          return result.data;
+        }
+
+        // fail open to unauthenticated state if the session object shape is compromised
+        return null;
+      } catch (error) {
+        return null;
+      }
+    }
+  }
+  return null;
+};
 
 export const authProvider: AuthProvider = {
   register: async ({
@@ -31,9 +91,6 @@ export const authProvider: AuthProvider = {
           },
         };
       }
-
-      // Store user data
-      localStorage.setItem("user", JSON.stringify(data.user));
 
       return {
         success: true,
@@ -68,9 +125,6 @@ export const authProvider: AuthProvider = {
         };
       }
 
-      // Store user data
-      localStorage.setItem("user", JSON.stringify(data.user));
-
       return {
         success: true,
         redirectTo: "/",
@@ -87,36 +141,30 @@ export const authProvider: AuthProvider = {
     }
   },
   logout: async () => {
+    // Clear the local state mirror cookie first
+    if (typeof document !== "undefined") {
+      document.cookie = localSessionCookieName + "; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure";
+    }
+
     const { error } = await authClient.signOut();
 
     if (error) {
       console.error("Logout error:", error);
-      return {
-        success: false,
-        error: {
-          name: "Logout failed",
-          message: "Unable to log out. Please try again.",
-        },
-      };
     }
 
-    localStorage.removeItem("user");
-
-    // Hard-force a browser reload to the login page.
-    // This physically destroys the React memory heap and flushes out TanStack Query completely, ensuring no cached data leak possible for subsequent logins
+    // Hard-force a browser reload to wipe out memory context
     window.location.href = "/login";
-
-    // Return success, but omit the 'redirectTo' property so Refine's router provider doesn't try to perform a duplicate SPA transition.
-    return {
-      success: true,
-    };
+    return { success: true };
   },
+
   onError: async (error: any) => {
     // Read the clean .statusCode property thrown by your data provider helper
     const status = error?.statusCode;
 
     if (status === 401) {
-      localStorage.removeItem("user");
+      if (typeof document !== "undefined") {
+        document.cookie = localSessionCookieName + "; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure";
+      }
       // Modern Refine requires returning an OnErrorResponse object
       // This triggers a clean Single Page Application redirect and logs them out
       return {
@@ -129,57 +177,61 @@ export const authProvider: AuthProvider = {
     return {};
   },
   check: async () => {
-    const userString = localStorage.getItem("user");
+    const session = parseSessionCookieHint();
 
-    if (userString) {
-      try {
-        const user = JSON.parse(userString);
-        return {
-          authenticated: true,
-          // Optional: Exposing the user profile lets you access things
-          // like user.role across your UI
-          data: user,
-        };
-      } catch (e) {
-        // If the localStorage string is corrupted, treat it as unauthenticated
-        localStorage.removeItem("user");
-      }
+    if (!session) {
+      return {
+        authenticated: false,
+        redirectTo: "/login",
+        error: {name: "Unauthorized", message: "Please log in to access this page."},
+      };
     }
-    // If no user exists, return authenticated: false.
-    // Refine's routing system handles the redirect to /login automatically.
+
+    // Determine if we need to verify state with the backend server
+    const now = Date.now();
+    const shouldVerifyWithServer = now - lastServerCheckAt > CACHE_MS;
+
+    if (shouldVerifyWithServer) {
+      // Update the cache timestamp immediately to debounce rapid sequential layout triggers
+      lastServerCheckAt = now;
+      // Run the live server session check fully asynchronously in the background
+      authClient.getSession().then(({data, error}) => {
+        if (error || !data?.user) {
+          console.warn("Background authentication check failed. Invalidating local session.");
+
+          // Evict local cookie
+          if (typeof document !== "undefined") {
+            document.cookie = `${localSessionCookieName}; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
+          }
+
+          // Force a top-level window redirect to smoothly evict the user out of the dashboard
+          window.location.href = "/login";
+        }
+      }).catch(() => {
+        // If a genuine network dropping error or slow server response e.g. server wake-up occurs
+        // reset the cache timer to allow a retry on the next route change,
+        // but do NOT log the user out falsely.
+        lastServerCheckAt = 0;
+      });
+    }
+
     return {
-      authenticated: false,
-      redirectTo: "/login",
-      error: {
-        name: "Unauthorized",
-        message: "Please log in to access this page.",
-      },
+      authenticated: true,
+      data: session,
     };
   },
   getPermissions: async () => {
-    const user = localStorage.getItem("user");
-
-    if (!user) return null;
-    const parsedUser: User = JSON.parse(user);
-
-    return {
-      role: parsedUser.role,
-    };
+    const session = parseSessionCookieHint();
+    return session ? session.role : null;
   },
   getIdentity: async () => {
-    const user = localStorage.getItem("user");
-
-    if (!user) return null;
-    const parsedUser: User = JSON.parse(user);
-
+    const session = parseSessionCookieHint();
+    if (!session) return null;
     return {
-      id: parsedUser.id,
-      name: parsedUser.name,
-      email: parsedUser.email,
-      image: parsedUser.image,
-      role: parsedUser.role,
-      imageCldPubId: parsedUser.imageCldPubId,
+      name: session.name,
+      email: session.email,
+      image: session.image,
+      role: session.role
     };
   },
-
-};
+}
