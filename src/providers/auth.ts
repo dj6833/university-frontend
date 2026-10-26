@@ -2,23 +2,12 @@ import type { AuthProvider } from "@refinedev/core";
 import { User, SignUpPayload } from "@/types";
 import { authClient } from "@/lib/auth-client";
 
-let cached: { user: User | null; at: number } | null = null;
-const CACHE_MS = 30_000;
-
-async function getSessionUser(): Promise<User | null> {
-  if (cached && Date.now() - cached.at < CACHE_MS) return cached.user;
-  const { data } = await authClient.getSession();
-  const user = (data?.user as unknown as User | undefined) ?? null;
-  cached = { user, at: Date.now() };
-  return user;
-}
-
-
 export const authProvider: AuthProvider = {
   register: async ({
     email,
     password,
     name,
+    role,
     image,
     imageCldPubId,
   }: SignUpPayload) => {
@@ -28,6 +17,7 @@ export const authProvider: AuthProvider = {
         email,
         password,
         image,
+        role,
         imageCldPubId,
       } as SignUpPayload);
 
@@ -42,8 +32,8 @@ export const authProvider: AuthProvider = {
         };
       }
 
-      // Set cached user record
-      cached = { user: data.user as unknown as User, at: Date.now() };
+      // Store user data
+      localStorage.setItem("user", JSON.stringify(data.user));
 
       return {
         success: true,
@@ -78,8 +68,8 @@ export const authProvider: AuthProvider = {
         };
       }
 
-      // Set cached user record
-      cached = { user: data.user as unknown as User, at: Date.now() };
+      // Store user data
+      localStorage.setItem("user", JSON.stringify(data.user));
 
       return {
         success: true,
@@ -110,8 +100,7 @@ export const authProvider: AuthProvider = {
       };
     }
 
-    // Clear cached user record
-    cached = null;
+    localStorage.removeItem("user");
 
     // Hard-force a browser reload to the login page.
     // This physically destroys the React memory heap and flushes out TanStack Query completely, ensuring no cached data leak possible for subsequent logins
@@ -127,10 +116,7 @@ export const authProvider: AuthProvider = {
     const status = error?.statusCode;
 
     if (status === 401) {
-      // Clear cached user record
-      cached = null;
-      // The page redirect causes the "unauthorised" toast to be lost before user can see it; using sessionStorage to flag this to the login screen
-      sessionStorage.setItem("auth_notice", "Your session has expired. Please sign in again.");
+      localStorage.removeItem("user");
       // Modern Refine requires returning an OnErrorResponse object
       // This triggers a clean Single Page Application redirect and logs them out
       return {
@@ -143,28 +129,56 @@ export const authProvider: AuthProvider = {
     return {};
   },
   check: async () => {
-    const user = await getSessionUser();
-    if (user) return { authenticated: true, data: user };
+    const userString = localStorage.getItem("user");
+
+    if (userString) {
+      try {
+        const user = JSON.parse(userString);
+        return {
+          authenticated: true,
+          // Optional: Exposing the user profile lets you access things
+          // like user.role across your UI
+          data: user,
+        };
+      } catch (e) {
+        // If the localStorage string is corrupted, treat it as unauthenticated
+        localStorage.removeItem("user");
+      }
+    }
+    // If no user exists, return authenticated: false.
+    // Refine's routing system handles the redirect to /login automatically.
     return {
       authenticated: false,
       redirectTo: "/login",
-      error: { name: "Unauthorized", message: "Please log in to access this page." },
+      error: {
+        name: "Unauthorized",
+        message: "Please log in to access this page.",
+      },
     };
   },
   getPermissions: async () => {
-    const user = await getSessionUser();
-    return user ? { role: user.role } : null;
+    const user = localStorage.getItem("user");
+
+    if (!user) return null;
+    const parsedUser: User = JSON.parse(user);
+
+    return {
+      role: parsedUser.role,
+    };
   },
   getIdentity: async () => {
-    const user = await getSessionUser();
+    const user = localStorage.getItem("user");
+
     if (!user) return null;
+    const parsedUser: User = JSON.parse(user);
+
     return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      image: user.image,
-      role: user.role,
-      imageCldPubId: user.imageCldPubId,
+      id: parsedUser.id,
+      name: parsedUser.name,
+      email: parsedUser.email,
+      image: parsedUser.image,
+      role: parsedUser.role,
+      imageCldPubId: parsedUser.imageCldPubId,
     };
   },
 
