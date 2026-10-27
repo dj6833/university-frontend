@@ -36,7 +36,15 @@ const localSessionCookieName = "localSessionHint=";
 
 const clearSessionCookie = (): void => {
   if (typeof document !== "undefined") {
+    // Clear for the root path
     document.cookie = localSessionCookieName + "; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure";
+    // Clear targeting the exact current window hostname (handles manual developer-tools edits)
+    const hostname = window.location.hostname;
+    document.cookie = `${localSessionCookieName}; Path=/; Domain=${hostname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
+    // Clear any wildcard domains
+    if (hostname.includes(".")) {
+      document.cookie = `${localSessionCookieName}; Path=/; Domain=.${hostname}; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
+    }
   }
 };
 
@@ -167,13 +175,12 @@ export const authProvider: AuthProvider = {
 
     if (status === 401) {
       clearSessionCookie();
-      // The page redirect causes the "unauthorised" toast to be lost before user can see it; using sessionStorage to flag this to the login screen
-      sessionStorage.setItem("auth_notice", "Your session has expired. Please sign in again.");
+      // The page redirect causes the "unauthorised" toast to be lost before user can see it; using qs to flag this to the login screen
+      window.location.href = "/login?reason=expired";
       // Modern Refine requires returning an OnErrorResponse object
       // This triggers a clean Single Page Application redirect and logs them out
       return {
         logout: true,
-        redirectTo: "/login",
       };
     }
     // For 403 Forbidden or other application errors, return an empty object.
@@ -186,8 +193,6 @@ export const authProvider: AuthProvider = {
     if (!session) {
       return {
         authenticated: false,
-        redirectTo: "/login",
-        error: {name: "Unauthorized", message: "Please log in to access this page."},
       };
     }
 
@@ -206,7 +211,7 @@ export const authProvider: AuthProvider = {
           clearSessionCookie();
 
           // Force a top-level window redirect to smoothly evict the user out of the dashboard
-          window.location.href = "/login";
+          window.location.href = "/login?reason=expired";
           return;
         }
 
@@ -216,7 +221,7 @@ export const authProvider: AuthProvider = {
           console.warn("Security compromise or out-of-sync state detected. Closing user session.");
           clearSessionCookie();
           authClient.signOut().finally(() => {
-            window.location.href = "/login";
+            window.location.href = "/login?reason=expired";
           });
         }
       }).catch(() => {

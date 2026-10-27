@@ -45,6 +45,9 @@ export const SignInForm = () => {
   const [searchParams] = useSearchParams();
   const { mutate: login, isPending: isLoggingIn } = useLogin();
 
+  // Check if browser was directed here due to a session expiry
+  const isSessionExpired = searchParams.get("reason") === "expired";
+
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -75,15 +78,7 @@ export const SignInForm = () => {
     }
   }, [searchParams, form, toast]);
 
-  // Display any auth notice flagged by unauthorised requests within app
-  const [notice, setNotice] = useState<string | null>(null);
-  useEffect(() => {
-    const n = sessionStorage.getItem("auth_notice");
-    if (n) {
-      sessionStorage.removeItem("auth_notice");
-      setNotice(n);
-    }
-  }, []);
+
 
   const handleSignIn = async (values: SignInFormValues) => {
     login({
@@ -113,11 +108,11 @@ export const SignInForm = () => {
         </CardHeader>
 
         <CardContent className="content">
-          {notice && (
+          {isSessionExpired && (
               <div role="alert"
                    className="mb-4 rounded-md border border-primary/20 bg-primary/10 p-3 text-center shadow-xs">
                 <p className="text-sm font-semibold text-primary">
-                  {notice}
+                  Your session has expired. Please sign in again.
                 </p>
               </div>
           )}
