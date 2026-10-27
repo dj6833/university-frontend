@@ -34,6 +34,12 @@ export type UserProfile = z.infer<typeof UserProfileSchema>;
 
 const localSessionCookieName = "localSessionHint=";
 
+const clearSessionCookie = (): void => {
+  if (typeof document !== "undefined") {
+    document.cookie = localSessionCookieName + "; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure";
+  }
+};
+
 const parseSessionCookieHint = (): UserProfile | null => {
   if (typeof document === "undefined") return null;
 
@@ -142,9 +148,7 @@ export const authProvider: AuthProvider = {
   },
   logout: async () => {
     // Clear the local state mirror cookie first
-    if (typeof document !== "undefined") {
-      document.cookie = localSessionCookieName + "; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure";
-    }
+    clearSessionCookie();
 
     const { error } = await authClient.signOut();
 
@@ -162,9 +166,9 @@ export const authProvider: AuthProvider = {
     const status = error?.statusCode;
 
     if (status === 401) {
-      if (typeof document !== "undefined") {
-        document.cookie = localSessionCookieName + "; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure";
-      }
+      clearSessionCookie();
+      // The page redirect causes the "unauthorised" toast to be lost before user can see it; using sessionStorage to flag this to the login screen
+      sessionStorage.setItem("auth_notice", "Your session has expired. Please sign in again.");
       // Modern Refine requires returning an OnErrorResponse object
       // This triggers a clean Single Page Application redirect and logs them out
       return {
@@ -199,13 +203,21 @@ export const authProvider: AuthProvider = {
         if (error || !data?.user) {
           console.warn("Background authentication check failed. Invalidating local session.");
 
-          // Evict local cookie
-          if (typeof document !== "undefined") {
-            document.cookie = `${localSessionCookieName}; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure`;
-          }
+          clearSessionCookie();
 
           // Force a top-level window redirect to smoothly evict the user out of the dashboard
           window.location.href = "/login";
+          return;
+        }
+
+        // LOCAL TAMPER VALIDATION: logout on cookie-to-server data mismatch
+        const serverUser = data.user as any; // role is a custom additionalField on server, not on client, so using 'any' for now
+        if (serverUser.role !== session.role || serverUser.email !== session.email) {
+          console.warn("Security compromise or out-of-sync state detected. Closing user session.");
+          clearSessionCookie();
+          authClient.signOut().finally(() => {
+            window.location.href = "/login";
+          });
         }
       }).catch(() => {
         // If a genuine network dropping error or slow server response e.g. server wake-up occurs
