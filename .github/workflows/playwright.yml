@@ -4,7 +4,7 @@ on:
     branches: [ staging ] # Test the staging environment after every push ('main' was proposed here also but I don't see why this would be necessary, my tests are designed to run on staging only, not on prod!?)
 jobs:
   test:
-    timeout-minutes: 60
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
