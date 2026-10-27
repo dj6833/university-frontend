@@ -191,10 +191,6 @@ export const authProvider: AuthProvider = {
     const session = parseSessionCookieHint();
 
     if (!session) {
-      // Prevent recursive redirects if they are already on the login path
-      if (typeof window !== "undefined" && window.location.pathname !== "/login") {
-        window.location.href = "/login";
-      }
       return {
         authenticated: false,
       };
