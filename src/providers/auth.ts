@@ -1,24 +1,79 @@
 import type { AuthProvider } from "@refinedev/core";
-import { User, SignUpPayload } from "@/types";
+import { SignUpPayload } from "@/types";
 import { authClient } from "@/lib/auth-client";
+import { z } from "zod";
 
-let cached: { user: User | null; at: number } | null = null;
-const CACHE_MS = 30_000;
+let lastServerCheckAt = 0;
+const CACHE_MS = 30_000; // 30-second validation window for checking server session state
 
-async function getSessionUser(): Promise<User | null> {
-  if (cached && Date.now() - cached.at < CACHE_MS) return cached.user;
-  const { data } = await authClient.getSession();
-  const user = (data?.user as unknown as User | undefined) ?? null;
-  cached = { user, at: Date.now() };
-  return user;
-}
+const UserProfileSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  image: z.string().refine((val) => {
+    // Empty image fields are valid (e.g., users without custom avatars)
+    if (!val) return true;
 
+    try {
+      // Force HTTPS check natively during string resolution
+      const secureUrl = val.startsWith("http://") ? val.replace("http://", "https://") : val;
+      const parsedUrl = new URL(secureUrl);
+      const hostname = parsedUrl.hostname;
+      //Ensure the hostname itself is cloudinary
+      const isCloudinary = hostname === "cloudinary.com" || hostname.endsWith(".cloudinary.com");
+
+      // Returns true if safe, false triggers an instant structural rejection
+      return hostname === "cloudinary.com" || hostname.endsWith(".cloudinary.com");
+    } catch (e) {
+      return false;
+    }
+  }),
+  role: z.string().min(1),
+});
+
+export type UserProfile = z.infer<typeof UserProfileSchema>;
+
+const localSessionCookieName = "localSessionHint=";
+
+const clearSessionCookie = (): void => {
+  if (typeof document !== "undefined") {
+    document.cookie = localSessionCookieName + "; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure";
+  }
+};
+
+const parseSessionCookieHint = (): UserProfile | null => {
+  if (typeof document === "undefined") return null;
+
+  const decodedCookie = decodeURIComponent(document.cookie);
+  const cookieArray = decodedCookie.split(";");
+
+  for (let i = 0; i < cookieArray.length; i++) {
+    let cookie = cookieArray[i].trim();
+    if (cookie.indexOf(localSessionCookieName) === 0) {
+      try {
+        const rawJson = cookie.substring(localSessionCookieName.length);
+        const parsedRaw = JSON.parse(rawJson);
+        const result = UserProfileSchema.safeParse(parsedRaw);
+
+        if (result.success) {
+          return result.data;
+        }
+
+        // fail open to unauthenticated state if the session object shape is compromised
+        return null;
+      } catch (error) {
+        return null;
+      }
+    }
+  }
+  return null;
+};
 
 export const authProvider: AuthProvider = {
   register: async ({
     email,
     password,
     name,
+    role,
     image,
     imageCldPubId,
   }: SignUpPayload) => {
@@ -28,6 +83,7 @@ export const authProvider: AuthProvider = {
         email,
         password,
         image,
+        role,
         imageCldPubId,
       } as SignUpPayload);
 
@@ -41,9 +97,6 @@ export const authProvider: AuthProvider = {
           },
         };
       }
-
-      // Set cached user record
-      cached = { user: data.user as unknown as User, at: Date.now() };
 
       return {
         success: true,
@@ -78,9 +131,6 @@ export const authProvider: AuthProvider = {
         };
       }
 
-      // Set cached user record
-      cached = { user: data.user as unknown as User, at: Date.now() };
-
       return {
         success: true,
         redirectTo: "/",
@@ -97,38 +147,26 @@ export const authProvider: AuthProvider = {
     }
   },
   logout: async () => {
+    // Clear the local state mirror cookie first
+    clearSessionCookie();
+
     const { error } = await authClient.signOut();
 
     if (error) {
       console.error("Logout error:", error);
-      return {
-        success: false,
-        error: {
-          name: "Logout failed",
-          message: "Unable to log out. Please try again.",
-        },
-      };
     }
 
-    // Clear cached user record
-    cached = null;
-
-    // Hard-force a browser reload to the login page.
-    // This physically destroys the React memory heap and flushes out TanStack Query completely, ensuring no cached data leak possible for subsequent logins
+    // Hard-force a browser reload to wipe out memory context
     window.location.href = "/login";
-
-    // Return success, but omit the 'redirectTo' property so Refine's router provider doesn't try to perform a duplicate SPA transition.
-    return {
-      success: true,
-    };
+    return { success: true };
   },
+
   onError: async (error: any) => {
     // Read the clean .statusCode property thrown by your data provider helper
     const status = error?.statusCode;
 
     if (status === 401) {
-      // Clear cached user record
-      cached = null;
+      clearSessionCookie();
       // The page redirect causes the "unauthorised" toast to be lost before user can see it; using sessionStorage to flag this to the login screen
       sessionStorage.setItem("auth_notice", "Your session has expired. Please sign in again.");
       // Modern Refine requires returning an OnErrorResponse object
@@ -143,29 +181,69 @@ export const authProvider: AuthProvider = {
     return {};
   },
   check: async () => {
-    const user = await getSessionUser();
-    if (user) return { authenticated: true, data: user };
+    const session = parseSessionCookieHint();
+
+    if (!session) {
+      return {
+        authenticated: false,
+        redirectTo: "/login",
+        error: {name: "Unauthorized", message: "Please log in to access this page."},
+      };
+    }
+
+    // Determine if we need to verify state with the backend server
+    const now = Date.now();
+    const shouldVerifyWithServer = now - lastServerCheckAt > CACHE_MS;
+
+    if (shouldVerifyWithServer) {
+      // Update the cache timestamp immediately to debounce rapid sequential layout triggers
+      lastServerCheckAt = now;
+      // Run the live server session check fully asynchronously in the background
+      authClient.getSession().then(({data, error}) => {
+        if (error || !data?.user) {
+          console.warn("Background authentication check failed. Invalidating local session.");
+
+          clearSessionCookie();
+
+          // Force a top-level window redirect to smoothly evict the user out of the dashboard
+          window.location.href = "/login";
+          return;
+        }
+
+        // LOCAL TAMPER VALIDATION: logout on cookie-to-server data mismatch
+        const serverUser = data.user as any; // role is a custom additionalField on server, not on client, so using 'any' for now
+        if (serverUser.role !== session.role || serverUser.email !== session.email) {
+          console.warn("Security compromise or out-of-sync state detected. Closing user session.");
+          clearSessionCookie();
+          authClient.signOut().finally(() => {
+            window.location.href = "/login";
+          });
+        }
+      }).catch(() => {
+        // If a genuine network dropping error or slow server response e.g. server wake-up occurs
+        // reset the cache timer to allow a retry on the next route change,
+        // but do NOT log the user out falsely.
+        lastServerCheckAt = 0;
+      });
+    }
+
     return {
-      authenticated: false,
-      redirectTo: "/login",
-      error: { name: "Unauthorized", message: "Please log in to access this page." },
+      authenticated: true,
+      data: session,
     };
   },
   getPermissions: async () => {
-    const user = await getSessionUser();
-    return user ? { role: user.role } : null;
+    const session = parseSessionCookieHint();
+    return session ? session.role : null;
   },
   getIdentity: async () => {
-    const user = await getSessionUser();
-    if (!user) return null;
+    const session = parseSessionCookieHint();
+    if (!session) return null;
     return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      image: user.image,
-      role: user.role,
-      imageCldPubId: user.imageCldPubId,
+      name: session.name,
+      email: session.email,
+      image: session.image,
+      role: session.role
     };
   },
-
-};
+}
