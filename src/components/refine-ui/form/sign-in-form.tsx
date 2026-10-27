@@ -83,9 +83,18 @@ export const SignInForm = () => {
       sessionStorage.removeItem("auth_notice");
       setNotice(n);
     }
+
+  // Clear the auth flag only when login screen component unmounts
+  return () => {
+    sessionStorage.removeItem("auth_notice");
+  };
   }, []);
 
   const handleSignIn = async (values: SignInFormValues) => {
+  // Clear any expired session flag if they attempt further sign in
+  sessionStorage.removeItem("auth_notice");
+  setNotice(null);
+
     login({
       email: values.email,
       password: values.password,
