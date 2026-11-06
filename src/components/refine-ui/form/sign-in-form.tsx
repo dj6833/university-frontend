@@ -4,7 +4,7 @@ import { CircleHelp } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 
 import { InputPassword } from "@/components/refine-ui/form/input-password";
@@ -17,7 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -45,6 +44,9 @@ export const SignInForm = () => {
   const Link = useLink();
   const [searchParams] = useSearchParams();
   const { mutate: login, isPending: isLoggingIn } = useLogin();
+
+  // Check if browser was directed here due to a session expiry
+  const isSessionExpired = searchParams.get("reason") === "expired";
 
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
@@ -76,6 +78,8 @@ export const SignInForm = () => {
     }
   }, [searchParams, form, toast]);
 
+
+
   const handleSignIn = async (values: SignInFormValues) => {
     login({
       email: values.email,
@@ -104,6 +108,14 @@ export const SignInForm = () => {
         </CardHeader>
 
         <CardContent className="content">
+          {isSessionExpired && (
+              <div role="alert"
+                   className="mb-4 rounded-md border border-primary/20 bg-primary/10 p-3 text-center shadow-xs">
+                <p className="text-sm font-semibold text-primary">
+                  Your session has expired. Please sign in again.
+                </p>
+              </div>
+          )}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSignIn)} className="form">
               <FormField

@@ -95,7 +95,8 @@
     "build": "refine build",
     "start-OLD": "refine start",
     "start": "serve -s dist -l 5173",
-    "refine": "refine"
+    "refine": "refine",
+    "test:e2e": "playwright test"
   },
   "browserslist": {
     "production": [

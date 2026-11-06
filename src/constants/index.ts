@@ -1,3 +1,4 @@
+import * as z from "zod";
 import { GraduationCap, School } from "lucide-react";
 
 export const USER_ROLES = {
@@ -88,6 +89,19 @@ export const DOCUMENT_STATUS = {
     FAILED: "failed",
 } as const;
 
+//validation checks for any env vars can be added here
+const envSchema = z.object({
+    VITE_BACKEND_BASE_URL: z.string().url()
+});
+
+const parsedSchema = envSchema.safeParse(import.meta.env);
+
+if (!parsedSchema.success) {
+    // Prints every config error at once in the terminal
+    console.error("Environment configuration failed:", parsedSchema.error.format());
+    throw new Error("Unable to start app due to invalid environment variables");
+}
+
 const getEnvVar = (key: string): string => {
     const value = import.meta.env[key];
     if (!value) {
@@ -97,7 +111,10 @@ const getEnvVar = (key: string): string => {
 };
 export const CLOUDINARY_UPLOAD_URL = getEnvVar("VITE_CLOUDINARY_UPLOAD_URL");
 export const CLOUDINARY_CLOUD_NAME = getEnvVar("VITE_CLOUDINARY_CLOUD_NAME");
-export const BACKEND_BASE_URL = getEnvVar("VITE_BACKEND_BASE_URL");
-export const BACKEND_ANALYSIS_SERVICE_URL = getEnvVar("VITE_BACKEND_ANALYSIS_SERVICE_URL");
-export const APP_TITLE_SUFFIX = getEnvVar("VITE_APP_TITLE_SUFFIX");
+
+// now using frontend proxy to backend API, so below setting is rerouted via frontend URL
+export const BACKEND_BASE_URL = `${window.location.origin}/api/`;
+
+export const BACKEND_ANALYSIS_SERVICE_URL = `${window.location.origin}/api-analysis/`
+export const APP_TITLE_SUFFIX = import.meta.env.VITE_APP_TITLE_SUFFIX;
 export const CLOUDINARY_UPLOAD_PRESET = getEnvVar("VITE_CLOUDINARY_UPLOAD_PRESET") ;

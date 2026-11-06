@@ -8,7 +8,7 @@ export const Register = () => {
       <div
           className="relative min-h-screen w-screen flex flex-col items-center justify-center p-4 bg-slate-900 bg-cover bg-center overflow-y-auto"
           style={{
-              backgroundImage: "url('/campus-backdrop.avif')"
+              backgroundImage: "url('/campus-backdrop.webp')"
           }}
       >
         <div className="absolute inset-0 bg-slate-950/45 backdrop-blur-[1px] pointer-events-none" />

@@ -1,196 +1,108 @@
 import { useDocumentTitle } from "@refinedev/react-router";
-import {APP_TITLE_SUFFIX, UI_LABELS} from "@/constants";
-import { useMemo } from "react";
-import { useLink, useList } from "@refinedev/core";
+import { APP_TITLE_SUFFIX } from "@/constants";
+import { useCan, useGetIdentity, useLink, useCustom } from "@refinedev/core";
 import {
   Bar,
   BarChart,
-  Cell,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import {
   BookOpen,
   Building2,
   GraduationCap,
-  Layers,
   ShieldCheck,
   Users,
+  Lectern
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import type { Department, Subject, User } from "@/types";
+import type { User } from "@/types";
 
-type ClassListItem = {
-  id: number;
-  name: string;
-  createdAt?: string;
-  subject?: {
-    name: string;
-  };
-  teacher?: {
-    name: string;
-  };
-};
+const HARDCODED_PALETTE = [
+  "#d97706", // Dark Amber
+  "#0284c7", // Ocean Blue
+  "#059669", // Soft Emerald
+  "#7c3aed", // Soft Purple
+  "#db2777", // Deep Rose
+  "#e11d48", // Slate Red
+  "#0891b2", // Muted Cyan
+  "#ca8a04", // Mustard Gold
+  "#4f46e5", // Muted Indigo
+  "#2563eb"  // Slate Blue
+];
 
-const roleColors = ["#f97316", "#0ea5e9", "#22c55e", "#a855f7"];
 
 const Dashboard = () => {
   useDocumentTitle(`Dashboard ${APP_TITLE_SUFFIX}`);
+  const { data: user } = useGetIdentity<User>();
   const Link = useLink();
-  const { query: usersQuery } = useList<User>({
-    resource: "users",
-    pagination: { mode: "off" },
+
+  const { data: canViewUserData } = useCan({
+    resource: "dashboard-user-panel",
+    action: "view",
+    params: { user },
   });
 
-  const { query: subjectsQuery } = useList<Subject>({
-    resource: "subjects",
-    pagination: { mode: "off" },
-  });
+  interface OverviewResponse {
+    users: Array<{ count: number }>;
+    teachers: Array<{ count: number }>;
+    admins: Array<{ count: number }>;
+    subjects: Array<{ count: number }>;
+    departments: Array<{ count: number }>;
+    classes: Array<{ count: number }>;
+  }
 
-  const { query: departmentsQuery } = useList<Department>({
-    resource: "departments",
-    pagination: { mode: "off" },
-  });
+  interface LatestResponse {
+    latestClasses: Array<{
+      id: number;
+      name: string;
+      subject?: { name: string };
+      teacher?: { name: string };
+    }>;
+    latestTeachers: Array<{
+      id: number;
+      name: string;
+      email: string;
+    }>;
+  }
 
-  const { query: classesQuery } = useList<ClassListItem>({
-    resource: "classes",
-    pagination: { mode: "off" },
-  });
+  interface ChartsResponse {
+    studentsPerDepartment: Array<{ department: string; total: number }>;
+    busiestTeachers: Array<{ name: string; classCount: number }>;
+    studentsBySubject: Array<{ subjectName: string; totalEnrollments: number }>;
+  }
 
-  const users = usersQuery.data?.data ?? [];
-  const subjects = subjectsQuery.data?.data ?? [];
-  const departments = departmentsQuery.data?.data ?? [];
-  const classes = classesQuery.data?.data ?? [];
+  const overviewQuery = useCustom<OverviewResponse>({ url: "api/stats/overview", method: "get" }) as any;
+  const latestQuery = useCustom<LatestResponse>({ url: "api/stats/latest", method: "get" }) as any;
+  const chartsQuery = useCustom<ChartsResponse>({ url: "api/stats/charts", method: "get" }) as any;
 
-  const usersByRole = useMemo(() => {
-    const counts = users.reduce<Record<string, number>>((acc, user) => {
-      const role = user.role ?? "unknown";
-      acc[role] = (acc[role] || 0) + 1;
-      return acc;
-    }, {});
+  const overviewData = overviewQuery?.result?.data?.data ?? {};
+  const latestData = latestQuery?.result?.data?.data ?? { latestClasses: [], latestTeachers: [] };
+  const chartsData = chartsQuery?.result?.data?.data ?? { studentsPerDepartment: [], busiestTeachers: [], studentsBySubject: [] };
 
-    return Object.entries(counts).map(([role, total]) => ({ role, total }));
-  }, [users]);
+  const newestClasses = latestData.latestClasses ?? [];
+  const newestTeachers = latestData.latestTeachers ?? [];
 
-  const subjectsByDepartment = useMemo(() => {
-    const counts = subjects.reduce<Record<string, number>>((acc, subject) => {
-      const departmentName =
-        (subject as { department?: { name?: string } }).department?.name ??
-        "Unassigned";
-      acc[departmentName] = (acc[departmentName] || 0) + 1;
-      return acc;
-    }, {});
-
-    return Object.entries(counts).map(([departmentName, totalSubjects]) => ({
-      departmentName,
-      totalSubjects,
-    }));
-  }, [subjects]);
-
-  const classesBySubject = useMemo(() => {
-    const counts = classes.reduce<Record<string, number>>((acc, classItem) => {
-      const subjectName = classItem.subject?.name ?? "Unassigned";
-      acc[subjectName] = (acc[subjectName] || 0) + 1;
-      return acc;
-    }, {});
-
-    return Object.entries(counts).map(([subjectName, totalClasses]) => ({
-      subjectName,
-      totalClasses,
-    }));
-  }, [classes]);
-
-  const newestClasses = useMemo(() => {
-    return [...classes]
-      .sort((a, b) => {
-        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return bTime - aTime;
-      })
-      .slice(0, 5);
-  }, [classes]);
-
-  const newestTeachers = useMemo(() => {
-    return users
-      .filter((user) => user.role === "teacher")
-      .sort((a, b) => {
-        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return bTime - aTime;
-      })
-      .slice(0, 5);
-  }, [users]);
-
-  const topDepartments = useMemo(() => {
-    return [...subjectsByDepartment]
-      .sort((a, b) => b.totalSubjects - a.totalSubjects)
-      .slice(0, 5)
-      .map((item, index) => ({
-        ...item,
-        departmentId: index,
-      }));
-  }, [subjectsByDepartment]);
-
-  const topSubjects = useMemo(() => {
-    return [...classesBySubject]
-      .sort((a, b) => b.totalClasses - a.totalClasses)
-      .slice(0, 5)
-      .map((item, index) => ({
-        ...item,
-        subjectId: index,
-      }));
-  }, [classesBySubject]);
+  const subjects = { length: overviewData.subjects?.[0]?.count ?? 0 };
+  const departments = { length: overviewData.departments?.[0]?.count ?? 0 };
+  const classes = { length: overviewData.classes?.[0]?.count ?? 0 };
 
   const kpis = [
-    {
-      label: "Total Users",
-      value: users.length,
-      icon: Users,
-      accent: "text-blue-600",
-    },
-    {
-      label: "Lecturers",
-      value: users.filter((user) => user.role === "teacher").length,
-      icon: GraduationCap,
-      accent: "text-emerald-600",
-    },
-    {
-      label: "Admins",
-      value: users.filter((user) => user.role === "admin").length,
-      icon: ShieldCheck,
-      accent: "text-amber-600",
-    },
-    {
-      label: "Subjects",
-      value: subjects.length,
-      icon: BookOpen,
-      accent: "text-purple-600",
-    },
-    {
-      label: "Departments",
-      value: departments.length,
-      icon: Building2,
-      accent: "text-cyan-600",
-    },
-    {
-      label: "Classes",
-      value: classes.length,
-      icon: Layers,
-      accent: "text-rose-600",
-    },
+    { label: "Total Users", value: overviewData.users?.[0]?.count ?? 0, icon: Users, accent: "text-blue-500" },
+    { label: "Lecturers", value: overviewData.teachers?.[0]?.count ?? 0, icon: Lectern, accent: "text-emerald-500" },
+    { label: "Admins", value: overviewData.admins?.[0]?.count ?? 0, icon: ShieldCheck, accent: "text-amber-500" },
+    { label: "Subjects", value: subjects.length, icon: BookOpen, accent: "text-purple-500" },
+    { label: "Departments", value: departments.length, icon: Building2, accent: "text-cyan-500" },
+    { label: "Classes", value: classes.length, icon: GraduationCap, accent: "text-rose-500" },
   ];
-
-  const chartData = usersByRole.map((item) => ({
-    ...item,
-    role: UI_LABELS[item.role as keyof typeof UI_LABELS] || item.role,
-  }));
 
     return (
     <div className="space-y-6">
@@ -206,152 +118,143 @@ const Dashboard = () => {
           <CardTitle>Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            {kpis.map((kpi) => (
-              <div
-                key={kpi.label}
-                className="rounded-lg border border-border bg-muted/20 p-4 hover:border-primary/40 hover:bg-muted/40 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-muted-foreground">
-                    {kpi.label}
-                  </p>
-                  <kpi.icon className={`h-4 w-4 ${kpi.accent}`} />
-                </div>
-                <div className="mt-2 text-2xl font-semibold">{kpi.value}</div>
-              </div>
-            ))}
+          <div className={`grid gap-4 sm:grid-cols-2 ${canViewUserData?.can ? "lg:grid-cols-3 xl:grid-cols-6" : "lg:grid-cols-3"}`}>
+
+            {kpis
+                .filter((kpi) => {
+                  if (["Total Users", "Lecturers", "Admins"].includes(kpi.label)) {
+                    return !!canViewUserData?.can;
+                  }
+                  return true;
+                })
+                .map((kpi) => (
+                    <div
+                        key={kpi.label}
+                        className="rounded-lg border border-border bg-muted/20 p-4 hover:border-primary/40 hover:bg-muted/40 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-muted-foreground">
+                          {kpi.label}
+                        </p>
+                        <kpi.icon className={`h-4 w-4 ${kpi.accent}`} />
+                      </div>
+                  <div className="mt-2 text-2xl font-semibold">
+                    {kpi.label === "Total Users" || kpi.label === "Lecturers" || kpi.label === "Admins"
+                      ? kpi.value
+                      : kpi.value.toLocaleString()}
           </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2 hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle>Users by Role</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                      dataKey="total"
-                      nameKey="role"
-                      data={chartData}
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={3}
-                  >
-                    {chartData.map((entry, index) => (
-                        <Cell
-                            key={`cell-${index}`}
-                            fill={roleColors[index % roleColors.length]}
-                        />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {usersByRole.map((entry, index) => (
-                  <span
-                      key={entry.role}
-                      className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs font-medium"
-                  >
-                  <span
-                      className="h-2 w-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                            roleColors[index % roleColors.length],
-                      }}
-                  />
-                  {UI_LABELS[entry.role as keyof typeof UI_LABELS] || entry.role} · {entry.total}
-                </span>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="grid gap-4">
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle>New Classes (last 5)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-semibold">
-                {newestClasses.length}
               </div>
-              <p className="text-sm text-muted-foreground">
-                Most recent classes added
-              </p>
+                ))}
+              </div>
             </CardContent>
           </Card>
-          <Card className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle>New Lecturers (last 5)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-semibold">
-                {newestTeachers.length}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Most recent lecturers added
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
 
       <Card className="hover:shadow-md transition-shadow">
         <CardHeader>
           <CardTitle>Insights</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-6 lg:grid-cols-2">
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-muted-foreground">
-              Subjects per Department
+        <CardContent className="grid gap-6 lg:grid-cols-12">
+          <div className="lg:col-span-5 flex flex-col justify-between border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-transparent">
+            <h3 className="text-sm font-semibold text-gray-500">
+              Student Distribution per Department
             </h3>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={subjectsByDepartment}>
-                  <XAxis dataKey="departmentName" tick={{ fontSize: 12 }} />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Bar
-                    dataKey="totalSubjects"
-                    fill="#f97316"
-                    radius={[6, 6, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+
+            <div className="flex flex-col items-center justify-center min-h-[300px] mt-2">
+              <div className="h-56 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                        data={chartsData.studentsPerDepartment}
+                        dataKey="total"
+                        nameKey="department"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={65}
+                        outerRadius={95}
+                        paddingAngle={2}
+                        isAnimationActive={true}
+                        animationDuration={800}
+                    >
+                      {chartsData.studentsPerDepartment?.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={HARDCODED_PALETTE[index % HARDCODED_PALETTE.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                        contentStyle={{ backgroundColor: "#fff", borderColor: "#e4e4e7", borderRadius: "8px" }}
+                        formatter={(value, name) => [`${Number(value).toLocaleString()} Students`, name]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center mt-4 px-2 w-full">
+                {chartsData.studentsPerDepartment?.map((entry, index) => (
+                    <div key={entry.department} className="flex items-center gap-1.5 text-xs shrink-0">
+            <span
+                className="w-2.5 h-2.5 rounded-full shrink-0"
+                style={{ backgroundColor: HARDCODED_PALETTE[index % HARDCODED_PALETTE.length] }}
+            />
+                      <span className="font-medium text-gray-600 dark:text-gray-400">
+              {entry.department}
+            </span>
+                    </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-muted-foreground">
-              Classes per Subject
-            </h3>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={classesBySubject}>
-                  <XAxis dataKey="subjectName" tick={{ fontSize: 12 }} />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Bar
-                    dataKey="totalClasses"
-                    fill="#0ea5e9"
-                    radius={[6, 6, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+          <div className="lg:col-span-7 space-y-4 flex flex-col justify-between">
+
+            <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-transparent space-y-3 flex-1 flex flex-col justify-between">
+              <h3 className="text-sm font-semibold text-gray-500">
+                Top Subjects by Enrolment
+              </h3>
+              <div className="h-32 w-full flex justify-center">
+                <div className="w-full max-w-[500px] h-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartsData.studentsBySubject} layout="horizontal" margin={{ bottom: 5 }}>
+                      <XAxis dataKey="subjectName" tick={{ fontSize: 10, fill: "#6b7280" }} interval={0} axisLine={false} tickLine={false} />
+                      <YAxis allowDecimals={false} hide />
+                      <Tooltip
+                          contentStyle={{ backgroundColor: "#fff", borderColor: "#e4e4e7", borderRadius: "8px" }}
+                          separator=""
+                          formatter={(value) => [`${value} Students Enrolled`, ""]}
+                      />
+                      <Bar dataKey="totalEnrollments" fill="#0ea5e9" radius={[4, 4, 0, 0]} barSize={40} isAnimationActive={true} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             </div>
+
+            <div className="border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-transparent space-y-3 flex-1 flex flex-col justify-between">
+              <h3 className="text-sm font-semibold text-gray-500">
+                Lecturers with Highest Class Allocations
+              </h3>
+              <div className="h-32 w-full flex justify-center">
+                <div className="w-full max-w-[500px] h-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartsData.busiestTeachers} layout="horizontal" margin={{ bottom: 5 }}>
+                      <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#6b7280" }} interval={0} axisLine={false} tickLine={false} />
+                      <YAxis allowDecimals={false} hide />
+                      <Tooltip
+                          contentStyle={{ backgroundColor: "#fff", borderColor: "#e4e4e7", borderRadius: "8px" }}
+                          separator=""
+                          formatter={(value) => [`${value} Classes Assigned`, ""]}
+                      />
+                      <Bar dataKey="classCount" fill="#10b981" radius={[4, 4, 0, 0]} barSize={40} isAnimationActive={true} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
           </div>
         </CardContent>
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="hover:shadow-md transition-shadow">
+      <Card className="hover:shadow-md transition-shadow">
           <CardHeader>
             <CardTitle>Newest Classes</CardTitle>
           </CardHeader>
@@ -385,94 +288,39 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle>Newest Lecturers</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {newestTeachers.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                No recent lecturers.
-              </p>
-            )}
-            {newestTeachers.map((teacher, index) => (
-              <Link
-                key={teacher.id}
-                to={`/users/show/${teacher.id}`}
-                className="flex items-center justify-between rounded-md border border-transparent px-3 py-2 transition-colors hover:border-primary/30 hover:bg-muted/40"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-semibold text-muted-foreground">
-                    #{index + 1}
-                  </span>
-                  <div>
-                    <p className="text-sm font-medium">{teacher.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {teacher.email}
-                    </p>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader>
+              <CardTitle>Newest Lecturers</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {newestTeachers.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No recent lecturers.
+                </p>
+              )}
+              {newestTeachers.map((teacher, index) => (
+                <Link
+                  key={teacher.id}
+                  to={`/faculty/show/${teacher.id}`}
+                  className="flex items-center justify-between rounded-md border border-transparent px-3 py-2 transition-colors hover:border-primary/30 hover:bg-muted/40"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-semibold text-muted-foreground">
+                      #{index + 1}
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium">{teacher.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {teacher.email}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <Badge variant="secondary">New</Badge>
-              </Link>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
+                  <Badge variant="secondary">New</Badge>
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle>Departments with Most Subjects</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {topDepartments.map((dept, index) => (
-              <div
-                key={dept.departmentId}
-                className="flex items-center justify-between rounded-md border border-transparent px-3 py-2 transition-colors hover:border-primary/30 hover:bg-muted/40"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-semibold text-muted-foreground">
-                    #{index + 1}
-                  </span>
-                  <div>
-                    <p className="text-sm font-medium">{dept.departmentName}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {dept.totalSubjects} subjects
-                    </p>
-                  </div>
-                </div>
-                <Badge>{dept.totalSubjects}</Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle>Subjects with Most Classes</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {topSubjects.map((subject, index) => (
-              <div
-                key={subject.subjectId}
-                className="flex items-center justify-between rounded-md border border-transparent px-3 py-2 transition-colors hover:border-primary/30 hover:bg-muted/40"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-semibold text-muted-foreground">
-                    #{index + 1}
-                  </span>
-                  <div>
-                    <p className="text-sm font-medium">{subject.subjectName}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {subject.totalClasses} classes
-                    </p>
-                  </div>
-                </div>
-                <Badge>{subject.totalClasses}</Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
       </div>
 
       <Separator />
